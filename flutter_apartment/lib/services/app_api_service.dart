@@ -1,0 +1,811 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
+import '../models/app_models.dart';
+
+class AppApiService {
+  AppApiService._();
+
+  static final AppApiService instance = AppApiService._();
+
+  static const _apiHostOverride = String.fromEnvironment('API_HOST', defaultValue: '');
+  static const _authApiOverride = String.fromEnvironment('AUTH_API_URL', defaultValue: '');
+  static const _billingApiOverride = String.fromEnvironment('BILLING_API_URL', defaultValue: '');
+  static const _facilityApiOverride = String.fromEnvironment('FACILITY_API_URL', defaultValue: '');
+  static const _securityApiOverride = String.fromEnvironment('SECURITY_API_URL', defaultValue: '');
+  static const _operationsApiOverride = String.fromEnvironment('OPERATIONS_API_URL', defaultValue: '');
+
+  static Uri get authBaseUri => _serviceUri(_authApiOverride, 8081);
+  static Uri get billingBaseUri => _serviceUri(_billingApiOverride, 8082);
+  static Uri get facilityBaseUri => _serviceUri(_facilityApiOverride, 8083);
+  static Uri get securityBaseUri => _serviceUri(_securityApiOverride, 8084);
+  static Uri get operationsBaseUri => _serviceUri(_operationsApiOverride, 8085);
+
+  static String get resolvedApiHost => _resolveDefaultHost();
+
+  final http.Client _client = http.Client();
+  final DateFormat _dateFormat = DateFormat('MMM d, yyyy');
+  final DateFormat _dateTimeFormat = DateFormat('MMM d, h:mm a');
+
+  Future<SessionUser> login({
+    required String email,
+    required String password,
+    required UserRole role,
+  }) async {
+    final json = await _postJson(
+      authBaseUri,
+      '/api/auth/login',
+      {
+        'email': email,
+        'password': password,
+        'role': role.name,
+      },
+    );
+    return _sessionUserFromJson(json);
+  }
+
+  Future<void> requestPasswordResetOtp({
+    required String email,
+  }) async {
+    await _postJson(
+      authBaseUri,
+      '/api/auth/reset-password/request-otp',
+      {
+        'email': email,
+      },
+    );
+  }
+
+  Future<String> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final json = await _postJson(
+      authBaseUri,
+      '/api/auth/reset-password/verify-otp',
+      {
+        'email': email,
+        'otp': otp,
+      },
+    ) as Map<String, dynamic>;
+    return json['resetToken'] as String? ?? '';
+  }
+
+  Future<void> completePasswordReset({
+    required String email,
+    required String resetToken,
+    required String newPassword,
+  }) async {
+    await _postJson(
+      authBaseUri,
+      '/api/auth/reset-password/complete',
+      {
+        'email': email,
+        'resetToken': resetToken,
+        'newPassword': newPassword,
+      },
+    );
+  }
+
+  Future<void> changePassword({
+    required int userId,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _postJson(
+      authBaseUri,
+      '/api/users/$userId/change-password',
+      {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
+  }
+
+  Future<SessionUser> fetchUserByEmail(String email) async {
+    final json = await _getJson(authBaseUri, '/api/users/by-email?email=${Uri.encodeQueryComponent(email)}');
+    return _sessionUserFromJson(json);
+  }
+
+  Future<List<ActivityItem>> fetchActivities() async {
+    final json = await _getJson(operationsBaseUri, '/api/operations/activity') as List<dynamic>;
+    return json
+        .map(
+          (item) => ActivityItem(
+            id: item['id'] as int?,
+            title: item['title'] as String? ?? '',
+            desc: item['description'] as String? ?? '',
+            time: _formatDateTime(item['createdAt']),
+            kind: item['type'] as String? ?? 'info',
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<ResidentItem>> fetchResidents() async {
+    final json = await _getJson(authBaseUri, '/api/users/residents') as List<dynamic>;
+    return json
+        .map(
+          (item) => ResidentItem(
+            id: item['id'] as int?,
+            name: item['fullName'] as String? ?? '',
+            unit: item['unitNumber'] as String? ?? '',
+            lease: 'Lease: ${item['leaseStatus'] ?? 'Active'}',
+            email: item['email'] as String? ?? '',
+            status: item['status'] as String? ?? 'Active',
+          ),
+        )
+        .toList();
+  }
+
+  Future<ResidentItem> createResident({
+    required String fullName,
+    required String unitNumber,
+    required String tower,
+    required String email,
+  }) async {
+    final json = await _postJson(
+      authBaseUri,
+      '/api/users/residents',
+      {
+        'fullName': fullName,
+        'unitNumber': unitNumber,
+        'tower': tower,
+        'email': email,
+      },
+    );
+    return ResidentItem(
+      id: json['id'] as int?,
+      name: json['fullName'] as String? ?? fullName,
+      unit: json['unitNumber'] as String? ?? unitNumber,
+      lease: 'Lease: ${json['leaseStatus'] ?? 'Active'}',
+      email: json['email'] as String? ?? email,
+      status: json['status'] as String? ?? 'Active',
+    );
+  }
+
+  Future<void> deactivateResident(int residentId) async {
+    await _delete(authBaseUri, '/api/users/residents/$residentId');
+  }
+
+  Future<void> activateResident(int residentId) async {
+    await _postJson(authBaseUri, '/api/users/residents/$residentId/activate', const {});
+  }
+
+  Future<List<StaffItem>> fetchStaff() async {
+    final json = await _getJson(authBaseUri, '/api/users/staff') as List<dynamic>;
+    return json
+        .map(
+          (item) => StaffItem(
+            id: item['id'] as int?,
+            name: item['fullName'] as String? ?? '',
+            role: item['role'] as String? ?? '',
+            shift: item['shift'] as String? ?? '',
+            email: item['email'] as String? ?? '',
+            phone: item['phone'] as String? ?? '',
+            status: item['status'] as String? ?? '',
+          ),
+        )
+        .toList();
+  }
+
+  Future<StaffItem> createStaff({
+    required String fullName,
+    required String jobTitle,
+    required String shift,
+    required String email,
+    required String phone,
+  }) async {
+    final json = await _postJson(
+      authBaseUri,
+      '/api/users/staff',
+      {
+        'fullName': fullName,
+        'jobTitle': jobTitle,
+        'shift': shift,
+        'email': email,
+        'phone': phone,
+      },
+    );
+    return _staffFromJson(json);
+  }
+
+  Future<StaffItem> updateStaff({
+    required int staffId,
+    required String fullName,
+    required String jobTitle,
+    required String shift,
+    required String email,
+    required String phone,
+    required String status,
+  }) async {
+    final json = await _putJson(
+      authBaseUri,
+      '/api/users/staff/$staffId',
+      {
+        'fullName': fullName,
+        'jobTitle': jobTitle,
+        'shift': shift,
+        'email': email,
+        'phone': phone,
+        'status': status,
+      },
+    );
+    return _staffFromJson(json);
+  }
+
+  Future<void> deactivateStaff(int staffId) async {
+    await _delete(authBaseUri, '/api/users/staff/$staffId');
+  }
+
+  Future<void> activateStaff(int staffId) async {
+    await _postJson(authBaseUri, '/api/users/staff/$staffId/activate', const {});
+  }
+
+  Future<BillingOverviewData> fetchBillingOverview({String status = 'All'}) async {
+    final json = await _getJson(billingBaseUri, '/api/billing/overview?status=$status') as Map<String, dynamic>;
+    final summary = json['summary'] as Map<String, dynamic>? ?? const {};
+    final invoices = (json['invoices'] as List<dynamic>? ?? const []).map(_invoiceFromJson).toList();
+    return BillingOverviewData(
+      totalInvoiced: _toDouble(summary['totalInvoiced']),
+      totalOutstanding: _toDouble(summary['totalOutstanding']),
+      activeInvoices: (summary['activeInvoices'] as num?)?.toInt() ?? 0,
+      invoices: invoices,
+    );
+  }
+
+  Future<List<BillItem>> fetchResidentBills(int residentId) async {
+    final json = await _getJson(billingBaseUri, '/api/billing/resident/$residentId') as List<dynamic>;
+    return json.map(_billFromJson).toList();
+  }
+
+  Future<Uri> createBillCheckout(int invoiceId) async {
+    final returnUrl = billingBaseUri.resolve('/api/billing/payos/return').toString();
+    final cancelUrl = billingBaseUri.resolve('/api/billing/payos/cancel').toString();
+    final json = await _postJson(
+      billingBaseUri,
+      '/api/billing/$invoiceId/checkout',
+      {
+        'returnUrl': returnUrl,
+        'cancelUrl': cancelUrl,
+      },
+    ) as Map<String, dynamic>;
+    final checkoutUrl = json['checkoutUrl'] as String?;
+    if (checkoutUrl == null || checkoutUrl.isEmpty) {
+      throw Exception('Billing checkout URL is missing from the PayOS response.');
+    }
+    return Uri.parse(checkoutUrl);
+  }
+
+  Future<BillItem> payBill(int invoiceId) async {
+    final json = await _postJson(billingBaseUri, '/api/billing/$invoiceId/pay', const {});
+    return _billFromJson(json);
+  }
+
+  Future<BillItem> createInvoice({
+    required int residentId,
+    required String residentName,
+    String? residentEmail,
+    required String unitNumber,
+    required String title,
+    required String category,
+    required double amount,
+    required DateTime dueDate,
+    String? description,
+  }) async {
+    final json = await _postJson(
+      billingBaseUri,
+      '/api/billing/invoices',
+      {
+        'residentId': residentId,
+        'residentName': residentName,
+        'residentEmail': residentEmail,
+        'unitNumber': unitNumber,
+        'title': title,
+        'category': category,
+        'amount': amount,
+        'dueDate': DateFormat('yyyy-MM-dd').format(dueDate),
+        'description': description,
+      },
+    );
+    if (json is Map<String, dynamic> && json['invoice'] != null) {
+      return _billFromJson(json['invoice']);
+    }
+    return _billFromJson(json);
+  }
+
+  Future<ApartmentStatsData> fetchApartmentStats() async {
+    final json = await _getJson(billingBaseUri, '/api/apartments') as Map<String, dynamic>;
+    final units = (json['units'] as List<dynamic>? ?? const []).map(
+      (item) => ApartmentUnitItem(
+        id: item['id'] as int?,
+        unitNumber: item['unitNumber'] as String? ?? '',
+        tower: item['tower'] as String? ?? '',
+        unitType: item['unitType'] as String? ?? '',
+        occupancyStatus: item['occupancyStatus'] as String? ?? '',
+        residentName: item['residentName'] as String?,
+        balance: _toDouble(item['balance']),
+      ),
+    ).toList();
+    return ApartmentStatsData(
+      totalUnits: (json['totalUnits'] as num?)?.toInt() ?? units.length,
+      occupiedUnits: (json['occupiedUnits'] as num?)?.toInt() ?? 0,
+      units: units,
+    );
+  }
+
+  Future<List<MaintenanceFacility>> fetchFacilities() async {
+    final json = await _getJson(facilityBaseUri, '/api/facilities') as Map<String, dynamic>;
+    final facilities = (json['facilities'] as List<dynamic>? ?? const []).map((item) {
+      final logs = (item['logs'] as List<dynamic>? ?? const []).map((log) => log['note'] as String? ?? '').toList();
+      return MaintenanceFacility(
+        id: item['id'] as int?,
+        name: item['name'] as String? ?? '',
+        status: item['status'] as String? ?? '',
+        lastCheck: _formatDateTime(item['lastCheckAt']),
+        health: (item['health'] as num?)?.toInt() ?? 0,
+        logs: logs,
+        area: item['area'] as String?,
+        icon: item['icon'] as String?,
+      );
+    }).toList();
+    return facilities;
+  }
+
+  Future<void> addFacilityLog({
+    required int facilityId,
+    required String note,
+    required String createdByName,
+    bool markOperational = false,
+  }) async {
+    await _postJson(
+      facilityBaseUri,
+      '/api/facilities/$facilityId/logs',
+      {
+        'note': note,
+        'createdByName': createdByName,
+        'markOperational': markOperational,
+      },
+    );
+  }
+
+  Future<List<BookingItem>> fetchBookings(int residentId) async {
+    final json = await _getJson(facilityBaseUri, '/api/bookings/resident/$residentId') as List<dynamic>;
+    return json
+        .map(
+          (item) => BookingItem(
+            id: item['id'] as int?,
+            facilityId: item['facilityId'] as int?,
+            title: item['title'] as String? ?? item['facilityName'] as String? ?? '',
+            time: '${_formatDate(item['bookingDate'])} - ${item['timeSlot'] ?? ''}',
+            location: item['facilityName'] as String? ?? '',
+            status: item['status'] as String? ?? 'Confirmed',
+          ),
+        )
+        .toList();
+  }
+
+  Future<BookingItem> createBooking({
+    required int residentId,
+    required int facilityId,
+    required DateTime bookingDate,
+    required String timeSlot,
+  }) async {
+    final json = await _postJson(
+      facilityBaseUri,
+      '/api/bookings/resident/$residentId',
+      {
+        'facilityId': facilityId,
+        'bookingDate': DateFormat('yyyy-MM-dd').format(bookingDate),
+        'timeSlot': timeSlot,
+      },
+    );
+    return BookingItem(
+      id: json['id'] as int?,
+      facilityId: json['facilityId'] as int?,
+      title: json['title'] as String? ?? '',
+      time: '${_formatDate(json['bookingDate'])} - ${json['timeSlot'] ?? ''}',
+      location: json['facilityName'] as String? ?? '',
+      status: json['status'] as String? ?? 'Confirmed',
+    );
+  }
+
+  Future<List<AnnouncementItem>> fetchAnnouncements() async {
+    final json = await _getJson(facilityBaseUri, '/api/announcements') as List<dynamic>;
+    return json
+        .map(
+          (item) => AnnouncementItem(
+            id: item['id'] as int?,
+            title: item['title'] as String? ?? '',
+            content: item['content'] as String? ?? '',
+            category: item['category'] as String? ?? '',
+            createdAt: _formatDateTime(item['createdAt']),
+          ),
+        )
+        .toList();
+  }
+
+  Future<SecurityOverviewData> fetchSecurityOverview() async {
+    final json = await _getJson(securityBaseUri, '/api/security/overview') as Map<String, dynamic>;
+    final incidents = (json['incidents'] as List<dynamic>? ?? const []).map(_incidentFromJson).toList();
+    final logs = (json['recentLogs'] as List<dynamic>? ?? const []).map(_securityLogFromJson).toList();
+    return SecurityOverviewData(incidents: incidents, recentLogs: logs);
+  }
+
+  Future<IncidentItem> createIncident({
+    required String title,
+    required String description,
+    required String zone,
+    required String severity,
+  }) async {
+    final json = await _postJson(
+      securityBaseUri,
+      '/api/security/incidents',
+      {
+        'title': title,
+        'description': description,
+        'zone': zone,
+        'severity': severity,
+      },
+    );
+    return _incidentFromJson(json);
+  }
+
+  Future<IncidentItem> triggerSos({
+    required int userId,
+    required String audience,
+  }) async {
+    final json = await _postJson(
+      securityBaseUri,
+      '/api/security/sos',
+      {
+        'userId': userId,
+        'audience': audience,
+      },
+    );
+    return _incidentFromJson(json);
+  }
+
+  Future<List<SecurityLog>> fetchSecurityHistory({
+    required int userId,
+    required String audience,
+  }) async {
+    final json = await _getJson(securityBaseUri, '/api/security/history/$audience/$userId') as Map<String, dynamic>;
+    final logs = (json['logs'] as List<dynamic>? ?? const []).map(_securityLogFromJson).toList();
+    return logs;
+  }
+
+  Future<AccountSummary> fetchAccountSummary(int userId) async {
+    final json = await _getJson(authBaseUri, '/api/users/$userId/account') as Map<String, dynamic>;
+    final userJson = json['user'] as Map<String, dynamic>? ?? const {};
+    final statsJson = json['stats'] as Map<String, dynamic>? ?? const {};
+    return AccountSummary(
+      user: _sessionUserFromJson(userJson),
+      stats: AccountStatsData(
+        billCount: (statsJson['billCount'] as num?)?.toInt() ?? 0,
+        guestCount: (statsJson['guestCount'] as num?)?.toInt() ?? 0,
+        openIssueCount: (statsJson['openIssueCount'] as num?)?.toInt() ?? 0,
+      ),
+    );
+  }
+
+  Future<TaskBundleData> fetchStaffTasks(int staffId) async {
+    final json = await _getJson(operationsBaseUri, '/api/operations/staff/$staffId/tasks') as Map<String, dynamic>;
+    final tasks = (json['tasks'] as List<dynamic>? ?? const []).map(
+      (item) => TaskItem(
+        id: item['id'] as int?,
+        title: item['title'] as String? ?? '',
+        zone: item['zone'] as String? ?? '',
+        priority: item['priority'] as String? ?? '',
+        status: item['status'] as String? ?? '',
+        category: item['category'] as String?,
+      ),
+    ).toList();
+    return TaskBundleData(
+      totalTasks: (json['totalTasks'] as num?)?.toInt() ?? tasks.length,
+      completedTasks: (json['completedTasks'] as num?)?.toInt() ?? 0,
+      tasks: tasks,
+    );
+  }
+
+  Future<dynamic> _getJson(Uri base, String path) async {
+    return _sendWithFallback(
+      base,
+      (uri) => _client.get(uri.resolve(path), headers: {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 8)),
+    );
+  }
+
+  Future<dynamic> _postJson(Uri base, String path, Map<String, dynamic> body) async {
+    return _sendWithFallback(
+      base,
+      (uri) => _client
+          .post(
+            uri.resolve(path),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 8)),
+    );
+  }
+
+  Future<dynamic> _putJson(Uri base, String path, Map<String, dynamic> body) async {
+    return _sendWithFallback(
+      base,
+      (uri) => _client
+          .put(
+            uri.resolve(path),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 8)),
+    );
+  }
+
+  Future<void> _delete(Uri base, String path) async {
+    await _sendWithFallback(
+      base,
+      (uri) => _client
+          .delete(
+            uri.resolve(path),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 8)),
+    );
+  }
+
+  Future<dynamic> _sendWithFallback(
+    Uri primaryBase,
+    Future<http.Response> Function(Uri base) send,
+  ) async {
+    Object? lastError;
+    for (final base in _candidateBases(primaryBase)) {
+      try {
+        final response = await send(base);
+        return _decodeResponse(response);
+      } on TimeoutException catch (error) {
+        lastError = error;
+      } on http.ClientException catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw Exception(
+      'Unable to reach backend. Tried ${_candidateBases(primaryBase).map((uri) => uri.toString()).join(', ')}. '
+      'Original error: ${lastError ?? 'unknown network error'}',
+    );
+  }
+
+  dynamic _decodeResponse(http.Response response) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body.isEmpty) {
+        return null;
+      }
+      return jsonDecode(response.body);
+    }
+    final responseBody = response.body.trim();
+    final message = responseBody.isEmpty ? 'Request failed: ${response.statusCode}' : 'Request failed: ${response.statusCode} - $responseBody';
+    throw Exception(message);
+  }
+
+  static Uri _serviceUri(String serviceOverride, int port) {
+    if (serviceOverride.isNotEmpty) {
+      return Uri.parse(_normalizeBaseUrl(serviceOverride));
+    }
+    final hostOverride = _apiHostOverride;
+    if (hostOverride.isNotEmpty) {
+      return Uri.parse('${_normalizeBaseUrl(hostOverride)}:$port');
+    }
+    return Uri.parse('${_resolveDefaultHost()}:$port');
+  }
+
+  static List<Uri> _candidateBases(Uri primaryBase) {
+    final candidates = <Uri>[primaryBase];
+    final port = primaryBase.hasPort ? primaryBase.port : null;
+    if (port == null || _apiHostOverride.isNotEmpty || _hasExplicitServiceOverride(primaryBase)) {
+      return candidates;
+    }
+
+    for (final host in _fallbackHostsForPlatform(primaryBase.host)) {
+      final candidate = primaryBase.replace(host: host);
+      if (!candidates.contains(candidate)) {
+        candidates.add(candidate);
+      }
+    }
+    return candidates;
+  }
+
+  static bool _hasExplicitServiceOverride(Uri primaryBase) {
+    return primaryBase == authBaseUri && _authApiOverride.isNotEmpty ||
+        primaryBase == billingBaseUri && _billingApiOverride.isNotEmpty ||
+        primaryBase == facilityBaseUri && _facilityApiOverride.isNotEmpty ||
+        primaryBase == securityBaseUri && _securityApiOverride.isNotEmpty ||
+        primaryBase == operationsBaseUri && _operationsApiOverride.isNotEmpty;
+  }
+
+  static String _resolveDefaultHost() {
+    if (kIsWeb) {
+      return 'http://127.0.0.1';
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return 'http://10.0.2.2';
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+        return 'http://127.0.0.1';
+      case TargetPlatform.fuchsia:
+        return 'http://127.0.0.1';
+    }
+  }
+
+  static List<String> _fallbackHostsForPlatform(String primaryHost) {
+    final hosts = <String>[];
+    void add(String host) {
+      if (host != primaryHost && !hosts.contains(host)) {
+        hosts.add(host);
+      }
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        add('10.0.2.2');
+        add('10.0.3.2');
+        add('127.0.0.1');
+        add('localhost');
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        add('127.0.0.1');
+        add('localhost');
+    }
+
+    if (kIsWeb) {
+      add('127.0.0.1');
+      add('localhost');
+    }
+
+    return hosts;
+  }
+
+  static String _normalizeBaseUrl(String value) {
+    final trimmed = value.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    return 'http://$trimmed';
+  }
+
+  SessionUser _sessionUserFromJson(Map<String, dynamic> json) {
+    return SessionUser(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      fullName: json['fullName'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      role: _userRoleFromString(json['role'] as String?),
+      unitNumber: json['unitNumber'] as String?,
+      tower: json['tower'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
+    );
+  }
+
+  UserRole _userRoleFromString(String? value) {
+    switch ((value ?? '').toLowerCase()) {
+      case 'admin':
+        return UserRole.admin;
+      case 'staff':
+        return UserRole.staff;
+      default:
+        return UserRole.resident;
+    }
+  }
+
+  StaffItem _staffFromJson(dynamic item) {
+    final json = item as Map<String, dynamic>;
+    return StaffItem(
+      id: (json['id'] as num?)?.toInt(),
+      name: json['fullName'] as String? ?? '',
+      role: json['role'] as String? ?? '',
+      shift: json['shift'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+    );
+  }
+
+  InvoiceItem _invoiceFromJson(dynamic item) {
+    final json = item as Map<String, dynamic>;
+    return InvoiceItem(
+      id: (json['id'] as num?)?.toInt(),
+      residentId: (json['residentId'] as num?)?.toInt(),
+      unit: json['unitNumber'] as String? ?? '',
+      resident: json['residentName'] as String? ?? '',
+      amount: _toDouble(json['amount']),
+      status: json['status'] as String? ?? '',
+      date: _formatDate(json['dueDate']),
+      title: json['title'] as String?,
+      category: json['category'] as String?,
+      description: json['description'] as String?,
+    );
+  }
+
+  BillItem _billFromJson(dynamic item) {
+    final json = item as Map<String, dynamic>;
+    return BillItem(
+      id: (json['id'] as num?)?.toInt(),
+      title: json['title'] as String? ?? '',
+      amount: _toDouble(json['amount']),
+      date: _formatDate(json['dueDate']),
+      status: json['status'] as String? ?? '',
+      type: json['category'] as String? ?? '',
+      description: json['description'] as String?,
+      residentId: (json['residentId'] as num?)?.toInt(),
+      residentName: json['residentName'] as String?,
+      unitNumber: json['unitNumber'] as String?,
+    );
+  }
+
+  IncidentItem _incidentFromJson(dynamic item) {
+    final json = item as Map<String, dynamic>;
+    return IncidentItem(
+      id: (json['id'] as num?)?.toInt(),
+      title: json['title'] as String? ?? '',
+      zone: json['zone'] as String? ?? '',
+      time: _formatDateTime(json['createdAt']),
+      status: json['status'] as String? ?? '',
+      desc: json['description'] as String? ?? '',
+      severity: json['severity'] as String?,
+      assignedStaffName: json['assignedStaffName'] as String?,
+    );
+  }
+
+  SecurityLog _securityLogFromJson(dynamic item) {
+    final json = item as Map<String, dynamic>;
+    return SecurityLog(
+      id: (json['id'] as num?)?.toInt(),
+      event: json['event'] as String? ?? '',
+      visitor: json['visitor'] as String? ?? '',
+      time: _formatDateTime(json['accessTime']),
+      status: json['status'] as String? ?? '',
+      audience: json['audience'] as String?,
+    );
+  }
+
+  String _formatDate(dynamic value) {
+    if (value == null || value.toString().isEmpty) {
+      return '';
+    }
+    try {
+      return _dateFormat.format(DateTime.parse(value.toString()));
+    } catch (_) {
+      return value.toString();
+    }
+  }
+
+  String _formatDateTime(dynamic value) {
+    if (value == null || value.toString().isEmpty) {
+      return '';
+    }
+    try {
+      return _dateTimeFormat.format(DateTime.parse(value.toString()).toLocal());
+    } catch (_) {
+      return value.toString();
+    }
+  }
+
+  double _toDouble(dynamic value) {
+    if (value == null) {
+      return 0;
+    }
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value.toString()) ?? 0;
+  }
+}
