@@ -1,0 +1,1 @@
+Converted from uploaded React/Vite apartment management app into a full Flutter source project with mock data and working file export hooks.

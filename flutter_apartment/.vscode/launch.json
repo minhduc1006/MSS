@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter Chrome (Google Login)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--dart-define=GOOGLE_CLIENT_ID=428248591926-urelh32dn2b6ngbilmufgopprnduglam.apps.googleusercontent.com",
+        "--dart-define=GOOGLE_SERVER_CLIENT_ID=428248591926-urelh32dn2b6ngbilmufgopprnduglam.apps.googleusercontent.com"
+      ]
+    },
+    {
+      "name": "Flutter Android (Google Login)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=GOOGLE_SERVER_CLIENT_ID=428248591926-urelh32dn2b6ngbilmufgopprnduglam.apps.googleusercontent.com"
+      ]
+    }
+  ]
+}

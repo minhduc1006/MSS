@@ -1,0 +1,13 @@
+com\mss\operations\dto\OperationsDtos$ActivityItem.class
+com\mss\operations\dto\OperationsDtos.class
+com\mss\operations\model\ActivityLog.class
+com\mss\operations\OperationsServiceApplication.class
+com\mss\operations\repository\ActivityLogRepository.class
+com\mss\operations\service\OperationsDomainService.class
+com\mss\operations\repository\StaffTaskRepository.class
+com\mss\operations\dto\OperationsDtos$TaskItem.class
+com\mss\operations\controller\OperationsController.class
+com\mss\operations\service\OperationsSeeder.class
+com\mss\operations\model\StaffTask.class
+com\mss\operations\config\WebConfig.class
+com\mss\operations\dto\OperationsDtos$TaskBundle.class

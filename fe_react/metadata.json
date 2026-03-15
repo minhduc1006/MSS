@@ -1,0 +1,5 @@
+{
+  "name": "Skyline Heights Management",
+  "description": "Hệ thống quản lý chung cư thông minh với tính năng đặt tiện ích, thanh toán hóa đơn và theo dõi an ninh.",
+  "requestFramePermissions": ["geolocation"]
+}
