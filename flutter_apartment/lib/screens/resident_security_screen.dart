@@ -142,28 +142,81 @@ class _ResidentSecurityScreenState extends State<ResidentSecurityScreen> {
   }
 
   Future<void> _callDesk() async {
-    final callUri = Uri.parse('tel:100');
-    final launched = await launchUrl(callUri);
-    if (!mounted) {
+    List<AdminContactItem> admins = const <AdminContactItem>[];
+    try {
+      admins = await AppApiService.instance.fetchAdminContacts();
+    } catch (_) {
+      // If auth-service isn't reachable, fall back to extension 100.
+    }
+
+    final callable = admins
+        .where((admin) => admin.phone.trim().isNotEmpty && admin.status.toLowerCase() != 'deactivated')
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+
+    Future<void> callPhone(String phone) async {
+      final normalized = phone.trim();
+      final callUri = Uri.parse('tel:$normalized');
+      final launched = await launchUrl(callUri);
+      if (!mounted) return;
+      if (launched) {
+        showAppSnack(context, 'Calling desk contact');
+        return;
+      }
+      await showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(context.tr('Guard Desk')),
+          content: Text('Phone: $normalized'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(context.t('close')),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (callable.length == 1) {
+      await callPhone(callable.first.phone);
       return;
     }
-    if (launched) {
-      showAppSnack(context, 'Opening guard desk line');
-      return;
-    }
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.tr('Guard Desk')),
-        content: Text(context.tr('Call extension 100 or use the lobby intercom for immediate assistance.')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(context.t('close')),
+
+    if (callable.isNotEmpty) {
+      await showModalBottomSheet(
+        context: context,
+        showDragHandle: true,
+        builder: (sheetContext) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 6),
+              ListTile(
+                title: Text(context.tr('Guard Desk')),
+                subtitle: const Text('Choose an admin to call'),
+              ),
+              ...callable.map(
+                (admin) => ListTile(
+                  leading: const Icon(Icons.admin_panel_settings_rounded),
+                  title: Text(admin.name.isEmpty ? admin.email : admin.name),
+                  subtitle: Text(admin.phone),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await callPhone(admin.phone);
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
+      return;
+    }
+
+    // Final fallback: extension 100.
+    await callPhone('100');
   }
 
   Future<void> _openIncidentForm(BuildContext context) async {

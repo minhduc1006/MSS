@@ -6,6 +6,8 @@ import com.mss.billing.model.ApartmentUnit;
 import com.mss.billing.model.Invoice;
 import com.mss.billing.repository.ApartmentUnitRepository;
 import com.mss.billing.repository.InvoiceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,6 +27,8 @@ import java.util.Map;
 
 @Service
 public class BillingDomainService {
+    private static final Logger log = LoggerFactory.getLogger(BillingDomainService.class);
+
     private final InvoiceRepository invoiceRepository;
     private final ApartmentUnitRepository unitRepository;
     private final PayOsProperties payOsProperties;
@@ -181,8 +185,12 @@ public class BillingDomainService {
         Invoice invoice = invoiceRepository.findById(invoiceId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found"));
         invoice.setStatus("Paid");
         invoice.setPaidAt(LocalDateTime.now());
+        if (!hasText(invoice.getResidentEmail())) {
+            invoice.setResidentEmail(authServiceClient.getUserEmail(invoice.getResidentId()));
+        }
         Invoice saved = invoiceRepository.save(invoice);
-        invoiceEmailService.sendPaymentReceiptEmail(saved);
+        BillingDtos.InvoiceEmailResponse emailResponse = invoiceEmailService.sendPaymentReceiptEmail(saved);
+        log.info("Receipt email for invoice {} -> sent={}, recipient={}, message={}", saved.getId(), emailResponse.sent(), emailResponse.recipient(), emailResponse.message());
         return toBill(saved);
     }
 
@@ -196,9 +204,21 @@ public class BillingDomainService {
                     invoice.setStatus("Paid");
                     invoice.setPaidAt(LocalDateTime.now());
                     invoice.setCheckoutUrl(null);
-                    invoiceEmailService.sendPaymentReceiptEmail(invoice);
+                    if (!hasText(invoice.getResidentEmail())) {
+                        invoice.setResidentEmail(authServiceClient.getUserEmail(invoice.getResidentId()));
+                    }
                 }
-                invoiceRepository.save(invoice);
+                Invoice saved = invoiceRepository.save(invoice);
+                if ("00".equals(verified.getCode())) {
+                    BillingDtos.InvoiceEmailResponse emailResponse = invoiceEmailService.sendPaymentReceiptEmail(saved);
+                    log.info("PayOS webhook receipt email for invoice {} (orderCode={}) -> sent={}, recipient={}, message={}",
+                        saved.getId(),
+                        verified.getOrderCode(),
+                        emailResponse.sent(),
+                        emailResponse.recipient(),
+                        emailResponse.message()
+                    );
+                }
             });
             return new BillingDtos.PayOsWebhookResult(
                 true,

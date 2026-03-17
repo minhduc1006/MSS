@@ -16,7 +16,14 @@ class SecurityScreen extends StatefulWidget {
 }
 
 class _SecurityScreenState extends State<SecurityScreen> {
-  static const _filters = ['All', 'Open', 'In-Progress', 'Resolved', 'Assigned', 'Deactivated'];
+  static const _filters = [
+    'All',
+    'Open',
+    'In-Progress',
+    'Resolved',
+    'Assigned',
+    'Deactivated'
+  ];
 
   late Future<SecurityOverviewData> _overviewFuture;
   final _draftIncidents = <IncidentItem>[];
@@ -72,12 +79,14 @@ class _SecurityScreenState extends State<SecurityScreen> {
             return asyncErrorView(
               context,
               title: 'Unable to load security & reporting',
-              message: snapshot.error.toString().replaceFirst('Exception: ', ''),
+              message:
+                  snapshot.error.toString().replaceFirst('Exception: ', ''),
               onRetry: _reload,
             );
           }
 
-          final incidents = _mergedIncidents(snapshot.data?.incidents ?? const <IncidentItem>[]);
+          final incidents = _mergedIncidents(
+              snapshot.data?.incidents ?? const <IncidentItem>[]);
           final filtered = _filteredIncidents(incidents);
 
           return ListView(
@@ -91,22 +100,41 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 mainAxisSpacing: 12,
                 childAspectRatio: 1.12,
                 children: [
-                  MetricCard(label: 'Incidents', value: '${incidents.length}', note: '${incidents.where((item) => item.status == 'Open').length} open', noteColor: const Color(0xFFF59E0B), icon: Icons.shield_rounded, iconColor: AppTheme.brand),
-                  MetricCard(label: 'Assigned', value: '${incidents.where((item) => item.status == 'Assigned').length}', note: '${incidents.where((item) => item.status == 'Resolved').length} resolved', noteColor: const Color(0xFF22C55E), icon: Icons.assignment_ind_rounded, iconColor: const Color(0xFF22C55E)),
+                  MetricCard(
+                      label: 'Incidents',
+                      value: '${incidents.length}',
+                      note:
+                          '${incidents.where((item) => item.status == 'Open').length} open',
+                      noteColor: const Color(0xFFF59E0B),
+                      icon: Icons.shield_rounded,
+                      iconColor: AppTheme.brand),
+                  MetricCard(
+                      label: 'Assigned',
+                      value:
+                          '${incidents.where((item) => item.status == 'Assigned').length}',
+                      note:
+                          '${incidents.where((item) => item.status == 'Resolved').length} resolved',
+                      noteColor: const Color(0xFF22C55E),
+                      icon: Icons.assignment_ind_rounded,
+                      iconColor: const Color(0xFF22C55E)),
                 ],
               ),
               const SizedBox(height: 16),
               SegmentedButton<bool>(
                 segments: [
-                  ButtonSegment<bool>(value: false, label: Text(context.tr('Incident List'))),
-                  ButtonSegment<bool>(value: true, label: Text(context.tr('Map View'))),
+                  ButtonSegment<bool>(
+                      value: false, label: Text(context.tr('Incident List'))),
+                  ButtonSegment<bool>(
+                      value: true, label: Text(context.tr('Map View'))),
                 ],
                 selected: {_mapView},
-                onSelectionChanged: (value) => setState(() => _mapView = value.first),
+                onSelectionChanged: (value) =>
+                    setState(() => _mapView = value.first),
               ),
               const SizedBox(height: 16),
               AppSearchField(
-                hint: 'Search security by incident, zone, severity, or assigned team',
+                hint:
+                    'Search security by incident, zone, severity, or assigned team',
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 onChanged: (_) => setState(() {}),
@@ -117,7 +145,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 child: Row(
                   children: [
                     for (final item in _filters) ...[
-                      _FilterChip(label: item, active: _filter == item, onTap: () => setState(() => _filter = item)),
+                      _FilterChip(
+                          label: item,
+                          active: _filter == item,
+                          onTap: () => setState(() => _filter = item)),
                       const SizedBox(width: 8),
                     ],
                   ],
@@ -130,13 +161,26 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  ActionTile(label: 'Create', icon: Icons.add_alert_rounded, onTap: _createIncident, primary: true),
-                  ActionTile(label: 'Search', icon: Icons.search_rounded, onTap: _focusSearch),
-                  ActionTile(label: 'Export', icon: Icons.download_rounded, onTap: () => _exportIncidents(incidents)),
+                  ActionTile(
+                      label: 'Create',
+                      icon: Icons.add_alert_rounded,
+                      onTap: _createIncident,
+                      primary: true),
+                  ActionTile(
+                      label: 'Search',
+                      icon: Icons.search_rounded,
+                      onTap: _focusSearch),
+                  ActionTile(
+                      label: 'Export',
+                      icon: Icons.download_rounded,
+                      onTap: () => _exportIncidents(incidents)),
                 ],
               ),
               const SizedBox(height: 16),
-              if (_mapView) _mapCard(incidents) else ...filtered.map((incident) => _incidentCard(context, incident)),
+              if (_mapView)
+                _mapCard(incidents)
+              else
+                ...filtered.map((incident) => _incidentCard(context, incident)),
             ],
           );
         },
@@ -170,8 +214,13 @@ class _SecurityScreenState extends State<SecurityScreen> {
             bottom: 16,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(color: AppTheme.brand.withValues(alpha: 0.88), borderRadius: BorderRadius.circular(999)),
-              child: Text('${incidents.length} tracked incidents', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+              decoration: BoxDecoration(
+                  color: AppTheme.brand.withValues(alpha: 0.88),
+                  borderRadius: BorderRadius.circular(999)),
+              child: Text('${incidents.length} tracked incidents',
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w700),
+                  textAlign: TextAlign.center),
             ),
           ),
         ],
@@ -211,9 +260,14 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(incident.title, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppTheme.textPrimary)),
+                        Text(incident.title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(color: AppTheme.textPrimary)),
                         const SizedBox(height: 4),
-                        Text('${incident.zone} - ${incident.time}', style: Theme.of(context).textTheme.bodySmall),
+                        Text('${incident.zone} - ${incident.time}',
+                            style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
                   ),
@@ -221,13 +275,17 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              Text(incident.desc, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppTheme.textMuted, fontWeight: FontWeight.w500)),
+              Text(incident.desc,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppTheme.textMuted, fontWeight: FontWeight.w500)),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  if (_assignmentLabel(incident) != null) _pill(context, Icons.assignment_ind_rounded, _assignmentLabel(incident)!),
+                  if (_assignmentLabel(incident) != null)
+                    _pill(context, Icons.assignment_ind_rounded,
+                        _assignmentLabel(incident)!),
                 ],
               ),
               const SizedBox(height: 14),
@@ -235,13 +293,29 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _incidentAction(context, icon: Icons.visibility_rounded, label: 'View', onTap: () => _viewIncident(incident)),
-                  _incidentAction(context, icon: Icons.edit_rounded, label: 'Update', onTap: () => _updateIncident(incident)),
+                  _incidentAction(context,
+                      icon: Icons.visibility_rounded,
+                      label: 'View',
+                      onTap: () => _viewIncident(incident)),
+                  _incidentAction(context,
+                      icon: Icons.edit_rounded,
+                      label: 'Update',
+                      onTap: () => _updateIncident(incident)),
                   if (_isDeactivated(incident.status))
-                    _incidentAction(context, icon: Icons.restart_alt_rounded, label: 'Activate', onTap: () => _activateIncident(incident))
+                    _incidentAction(context,
+                        icon: Icons.restart_alt_rounded,
+                        label: 'Activate',
+                        onTap: () => _activateIncident(incident))
                   else ...[
-                    _incidentAction(context, icon: Icons.delete_rounded, label: 'Delete', onTap: () => _deleteIncident(incident), destructive: true),
-                    _incidentAction(context, icon: Icons.assignment_ind_rounded, label: 'Assign', onTap: () => _assignIncident(incident)),
+                    _incidentAction(context,
+                        icon: Icons.delete_rounded,
+                        label: 'Delete',
+                        onTap: () => _deleteIncident(incident),
+                        destructive: true),
+                    _incidentAction(context,
+                        icon: Icons.assignment_ind_rounded,
+                        label: 'Assign',
+                        onTap: () => _assignIncident(incident)),
                   ],
                 ],
               ),
@@ -277,7 +351,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
     required VoidCallback onTap,
     bool destructive = false,
   }) {
-    final color = destructive ? const Color(0xFFEF4444) : const Color(0xFF137FEC);
+    final color =
+        destructive ? const Color(0xFFEF4444) : const Color(0xFF137FEC);
     return Material(
       color: destructive ? const Color(0xFFFEF2F2) : const Color(0xFFEAF3FF),
       borderRadius: BorderRadius.circular(999),
@@ -291,7 +366,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
             children: [
               Icon(icon, size: 16, color: color),
               const SizedBox(width: 6),
-              Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color)),
+              Text(label,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: color)),
             ],
           ),
         ),
@@ -312,7 +391,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
   List<IncidentItem> _filteredIncidents(List<IncidentItem> incidents) {
     final query = _searchController.text.trim().toLowerCase();
     return incidents.where((incident) {
-      final assignment = (_assignments[_incidentKey(incident)] ?? '').toLowerCase();
+      final assignment =
+          (_assignments[_incidentKey(incident)] ?? '').toLowerCase();
       final matchesQuery = query.isEmpty ||
           incident.title.toLowerCase().contains(query) ||
           incident.zone.toLowerCase().contains(query) ||
@@ -322,7 +402,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
       return matchesQuery && matchesFilter;
     }).toList()
       ..sort((left, right) {
-        final compare = _deactivatedSort(left.status).compareTo(_deactivatedSort(right.status));
+        final compare = _deactivatedSort(left.status)
+            .compareTo(_deactivatedSort(right.status));
         if (compare != 0) return compare;
         return left.title.toLowerCase().compareTo(right.title.toLowerCase());
       });
@@ -336,9 +417,12 @@ class _SecurityScreenState extends State<SecurityScreen> {
     return incident;
   }
 
-  String _incidentKey(IncidentItem incident) => incident.id?.toString() ?? '${incident.title}|${incident.zone}|${incident.time}';
+  String _incidentKey(IncidentItem incident) =>
+      incident.id?.toString() ??
+      '${incident.title}|${incident.zone}|${incident.time}';
 
-  String? _assignmentLabel(IncidentItem incident) => _assignments[_incidentKey(incident)];
+  String? _assignmentLabel(IncidentItem incident) =>
+      _assignments[_incidentKey(incident)];
 
   int _deactivatedSort(String status) => _isDeactivated(status) ? 1 : 0;
 
@@ -386,23 +470,36 @@ class _SecurityScreenState extends State<SecurityScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Title')),
+                TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: 'Title')),
                 const SizedBox(height: 12),
-                TextField(controller: zoneController, decoration: const InputDecoration(labelText: 'Zone')),
+                TextField(
+                    controller: zoneController,
+                    decoration: const InputDecoration(labelText: 'Zone')),
                 const SizedBox(height: 12),
-                TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Description'), maxLines: 3),
+                TextField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                    maxLines: 3),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: severity,
-                  items: const ['Low', 'Medium', 'High', 'Critical'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
-                  onChanged: (value) => setModalState(() => severity = value ?? 'High'),
+                  items: const ['Low', 'Medium', 'High', 'Critical']
+                      .map((value) =>
+                          DropdownMenuItem(value: value, child: Text(value)))
+                      .toList(),
+                  onChanged: (value) =>
+                      setModalState(() => severity = value ?? 'High'),
                   decoration: const InputDecoration(labelText: 'Severity'),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel')),
             FilledButton(
               onPressed: () async {
                 try {
@@ -420,7 +517,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   showAppSnack(context, 'Security & reporting created');
                 } catch (error) {
                   if (!mounted) return;
-                  showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+                  showAppSnack(context,
+                      error.toString().replaceFirst('Exception: ', ''));
                 }
               },
               child: const Text('Create'),
@@ -448,30 +546,48 @@ class _SecurityScreenState extends State<SecurityScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Title')),
+                TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: 'Title')),
                 const SizedBox(height: 12),
-                TextField(controller: zoneController, decoration: const InputDecoration(labelText: 'Zone')),
+                TextField(
+                    controller: zoneController,
+                    decoration: const InputDecoration(labelText: 'Zone')),
                 const SizedBox(height: 12),
-                TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Description'), maxLines: 3),
+                TextField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                    maxLines: 3),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: status,
                   decoration: const InputDecoration(labelText: 'Status'),
-                  items: _filters.where((item) => item != 'All').map((item) => DropdownMenuItem(value: item, child: Text(context.tr(item)))).toList(),
-                  onChanged: (value) => setModalState(() => status = value ?? current.status),
+                  items: _filters
+                      .where((item) => item != 'All')
+                      .map((item) => DropdownMenuItem(
+                          value: item, child: Text(context.tr(item))))
+                      .toList(),
+                  onChanged: (value) =>
+                      setModalState(() => status = value ?? current.status),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: severity,
                   decoration: const InputDecoration(labelText: 'Severity'),
-                  items: const ['Low', 'Medium', 'High', 'Critical'].map((value) => DropdownMenuItem(value: value, child: Text(context.tr(value)))).toList(),
-                  onChanged: (value) => setModalState(() => severity = value ?? current.severity ?? 'High'),
+                  items: const ['Low', 'Medium', 'High', 'Critical']
+                      .map((value) => DropdownMenuItem(
+                          value: value, child: Text(context.tr(value))))
+                      .toList(),
+                  onChanged: (value) => setModalState(
+                      () => severity = value ?? current.severity ?? 'High'),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel')),
             FilledButton(
               onPressed: () async {
                 if (current.id == null) {
@@ -506,8 +622,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   showAppSnack(context, 'Security & reporting updated');
                 } catch (error) {
                   if (!dialogContext.mounted || !mounted) return;
-                  showAppSnack(
-                      context, error.toString().replaceFirst('Exception: ', ''));
+                  showAppSnack(context,
+                      error.toString().replaceFirst('Exception: ', ''));
                 }
               },
               child: const Text('Save'),
@@ -527,8 +643,12 @@ class _SecurityScreenState extends State<SecurityScreen> {
         title: const Text('Delete Security & Reporting'),
         content: Text('Deactivate incident "${current.title}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Delete')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Delete')),
         ],
       ),
     );
@@ -560,11 +680,13 @@ class _SecurityScreenState extends State<SecurityScreen> {
   }
 
   Future<void> _activateIncident(IncidentItem? incident) async {
-    final current = _requireSelected(incident, 'Select an incident to activate.');
+    final current =
+        _requireSelected(incident, 'Select an incident to activate.');
     if (current == null) return;
     if (current.id == null) {
       setState(() {
-        _overrides[_incidentKey(current)] = _copyIncident(current, status: 'Open');
+        _overrides[_incidentKey(current)] =
+            _copyIncident(current, status: 'Open');
       });
       showAppSnack(context, 'Security & reporting activated');
       return;
@@ -598,12 +720,17 @@ class _SecurityScreenState extends State<SecurityScreen> {
             Text('Zone: ${current.zone}'),
             Text('Status: ${current.status}'),
             Text('Severity: ${current.severity ?? '-'}'),
-            Text('Assigned to: ${_assignmentLabel(current) ?? current.assignedStaffName ?? 'Unassigned'}'),
+            Text(
+                'Assigned to: ${_assignmentLabel(current) ?? current.assignedStaffName ?? 'Unassigned'}'),
             const SizedBox(height: 8),
             Text(current.desc),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close'))],
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Close'))
+        ],
       ),
     );
   }
@@ -612,7 +739,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
     final current = _requireSelected(incident, 'Select an incident to assign.');
     if (current == null) return;
     final staffMembers = (await AppApiService.instance.fetchStaff())
-        .where((staff) => staff.id != null && staff.status.toLowerCase() != 'inactive')
+        .where((staff) =>
+            staff.id != null && staff.status.toLowerCase() != 'inactive')
         .toList()
       ..sort((left, right) => left.name.compareTo(right.name));
     if (!mounted) return;
@@ -621,7 +749,9 @@ class _SecurityScreenState extends State<SecurityScreen> {
       return;
     }
     StaffItem selectedStaff = staffMembers.firstWhere(
-      (staff) => staff.name == (_assignments[_incidentKey(current)] ?? current.assignedStaffName),
+      (staff) =>
+          staff.name ==
+          (_assignments[_incidentKey(current)] ?? current.assignedStaffName),
       orElse: () => staffMembers.first,
     );
     await showDialog(
@@ -638,7 +768,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                 child: DropdownButtonFormField<int>(
                   initialValue: selectedStaff.id,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Assigned Staff'),
+                  decoration:
+                      const InputDecoration(labelText: 'Assigned Staff'),
                   items: staffMembers
                       .map(
                         (staff) => DropdownMenuItem<int>(
@@ -684,7 +815,9 @@ class _SecurityScreenState extends State<SecurityScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel')),
             FilledButton(
               onPressed: () async {
                 try {
@@ -723,8 +856,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   showAppSnack(context, 'Security & reporting assigned');
                 } catch (error) {
                   if (!dialogContext.mounted || !mounted) return;
-                  showAppSnack(
-                      context, error.toString().replaceFirst('Exception: ', ''));
+                  showAppSnack(context,
+                      error.toString().replaceFirst('Exception: ', ''));
                 }
               },
               child: const Text('Assign'),
@@ -739,9 +872,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
     final content = StringBuffer('Title,Zone,Status,Severity,Assigned To\n');
     for (final incident in incidents) {
       final key = _incidentKey(incident);
-      content.writeln('${incident.title},${incident.zone},${incident.status},${incident.severity ?? ''},${_assignments[key] ?? incident.assignedStaffName ?? ''}');
+      content.writeln(
+          '${incident.title},${incident.zone},${incident.status},${incident.severity ?? ''},${_assignments[key] ?? incident.assignedStaffName ?? ''}');
     }
-    await DownloadService.saveCsvFile(filename: 'security_reporting_export', content: content.toString());
+    await DownloadService.saveCsvFile(
+        filename: 'security_reporting_export', content: content.toString());
     if (mounted) showAppSnack(context, 'Security & reporting exported');
   }
 }
@@ -768,12 +903,13 @@ class _FilterChip extends StatelessWidget {
           color: active ? const Color(0xFFEAF3FF) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
-          child: Text(
-            context.tr(label),
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: active ? const Color(0xFF137FEC) : const Color(0xFF8B97AA),
-                ),
-          ),
+        child: Text(
+          context.tr(label),
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color:
+                    active ? const Color(0xFF137FEC) : const Color(0xFF8B97AA),
+              ),
+        ),
       ),
     );
   }

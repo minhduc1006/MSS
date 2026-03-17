@@ -203,6 +203,21 @@ class AppApiService {
         .toList();
   }
 
+  Future<List<AdminContactItem>> fetchAdminContacts() async {
+    final json = await _getJson(authBaseUri, '/api/users/admins') as List<dynamic>;
+    return json
+        .map(
+          (item) => AdminContactItem(
+            id: item['id'] as int?,
+            name: item['fullName'] as String? ?? '',
+            email: item['email'] as String? ?? '',
+            phone: item['phone'] as String? ?? '',
+            status: item['status'] as String? ?? '',
+          ),
+        )
+        .toList();
+  }
+
   Future<StaffItem> createStaff({
     required String fullName,
     required String jobTitle,

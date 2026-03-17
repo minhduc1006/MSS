@@ -69,6 +69,22 @@ class StaffItem {
   const StaffItem({this.id, required this.name, required this.role, required this.shift, required this.email, required this.phone, required this.status});
 }
 
+class AdminContactItem {
+  final int? id;
+  final String name;
+  final String email;
+  final String phone;
+  final String status;
+
+  const AdminContactItem({
+    this.id,
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.status,
+  });
+}
+
 class InvoiceItem {
   final int? id;
   final int? residentId;

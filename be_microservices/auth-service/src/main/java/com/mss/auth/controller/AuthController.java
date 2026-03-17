@@ -69,6 +69,11 @@ public class AuthController {
         return service.getStaff();
     }
 
+    @GetMapping("/users/admins")
+    public List<AuthDtos.AdminContactItem> admins() {
+        return service.getAdminContacts();
+    }
+
     @PostMapping("/users/staff")
     public AuthDtos.StaffItem createStaff(@Valid @RequestBody AuthDtos.CreateStaffRequest request) {
         return service.createStaff(request);

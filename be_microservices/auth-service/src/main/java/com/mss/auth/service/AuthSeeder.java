@@ -15,9 +15,9 @@ public class AuthSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        ensure("admin@skyline.com", "System Admin", "admin", null, null, null, null, null, "Active", null, 0, 0, 8);
-        ensure("admin@fpt.edu.vn", "FPT Admin", "admin", null, null, null, null, null, "Active", null, 0, 0, 8);
-        ensure("duclmhe182023@fpt.edu.vn", "Duc LM HE182023", "admin", null, null, null, null, null, "Active", null, 0, 0, 8);
+        ensure("admin@skyline.com", "System Admin", "admin", null, null, null, null, "100", "Active", null, 0, 0, 8);
+        ensure("admin@fpt.edu.vn", "FPT Admin", "admin", null, null, null, null, "100", "Active", null, 0, 0, 8);
+        ensure("duclmhe182023@fpt.edu.vn", "Duc LM HE182023", "admin", null, null, null, null, "100", "Active", null, 0, 0, 8);
         ensure("john.doe@skyline.com", "John Doe", "resident", "402", "Skyview Tower", null, null, null, "Active", "Active", 4, 3, 0);
         ensure("alex.t@example.com", "Alex Thompson", "resident", "402B", "Skyview Tower", null, null, null, "Active", "Active", 1, 1, 0);
         ensure("s.jenkins@corp.com", "Sarah Jenkins", "resident", "115A", "Ocean Tower", null, null, null, "Active", "Ending Soon", 1, 0, 0);

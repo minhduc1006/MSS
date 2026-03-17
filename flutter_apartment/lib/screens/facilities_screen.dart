@@ -94,9 +94,8 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
           final filtered = _filteredFacilities(facilities);
           final maintenanceCount =
               facilities.where((item) => item.status == 'Maintenance').length;
-          final assignedCount = facilities
-              .where((item) => item.status == 'Assigned')
-              .length;
+          final assignedCount =
+              facilities.where((item) => item.status == 'Assigned').length;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -177,8 +176,8 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
               FutureBuilder<List<CustomServiceRequestItem>>(
                 future: _customRequestsFuture,
                 builder: (context, requestSnapshot) {
-                  final requests =
-                      requestSnapshot.data ?? const <CustomServiceRequestItem>[];
+                  final requests = requestSnapshot.data ??
+                      const <CustomServiceRequestItem>[];
                   if (requestSnapshot.connectionState ==
                           ConnectionState.waiting &&
                       requests.isEmpty) {
@@ -218,13 +217,12 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                                                   .textTheme
                                                   .labelLarge
                                                   ?.copyWith(
-                                                    color:
-                                                        AppTheme.textPrimary,
+                                                    color: AppTheme.textPrimary,
                                                   ),
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              '${request.residentName} • ${request.unitNumber}',
+                                              '${request.residentName} - ${request.unitNumber}',
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .bodyMedium,
@@ -259,18 +257,16 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                                     const SizedBox(height: 6),
                                     Text(
                                       'Preferred schedule: ${request.preferredSchedule}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
                                   ],
                                   if (request.assignedStaffName != null) ...[
                                     const SizedBox(height: 6),
                                     Text(
                                       'Assigned staff: ${request.assignedStaffName}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
                                   ],
                                   if (request.quotedPrice != null) ...[
@@ -290,9 +286,8 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                                     const SizedBox(height: 6),
                                     Text(
                                       'Staff note: ${request.quoteNote}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
                                   ],
                                   const SizedBox(height: 12),
@@ -687,11 +682,12 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                   setState(() => _selectedFacilityKey = _facilityKey(created));
                   Navigator.pop(dialogContext);
                   _reload();
-                  showAppSnack(context, 'Facility & service management created');
+                  showAppSnack(
+                      context, 'Facility & service management created');
                 } catch (error) {
                   if (!dialogContext.mounted || !mounted) return;
-                  showAppSnack(
-                      context, error.toString().replaceFirst('Exception: ', ''));
+                  showAppSnack(context,
+                      error.toString().replaceFirst('Exception: ', ''));
                 }
               },
               child: const Text('Create'),
@@ -765,7 +761,8 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                     );
                   });
                   Navigator.pop(dialogContext);
-                  showAppSnack(context, 'Facility & service management updated');
+                  showAppSnack(
+                      context, 'Facility & service management updated');
                   return;
                 }
                 try {
@@ -790,11 +787,12 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                   if (!dialogContext.mounted || !mounted) return;
                   Navigator.pop(dialogContext);
                   _reload();
-                  showAppSnack(context, 'Facility & service management updated');
+                  showAppSnack(
+                      context, 'Facility & service management updated');
                 } catch (error) {
                   if (!dialogContext.mounted || !mounted) return;
-                  showAppSnack(
-                      context, error.toString().replaceFirst('Exception: ', ''));
+                  showAppSnack(context,
+                      error.toString().replaceFirst('Exception: ', ''));
                 }
               },
               child: const Text('Save'),
@@ -959,7 +957,8 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
     final current = _requireSelected(facility, 'Select a facility to assign.');
     if (current == null) return;
     final staffMembers = (await AppApiService.instance.fetchStaff())
-        .where((staff) => staff.id != null && staff.status.toLowerCase() != 'inactive')
+        .where((staff) =>
+            staff.id != null && staff.status.toLowerCase() != 'inactive')
         .toList()
       ..sort((left, right) => left.name.compareTo(right.name));
     if (!mounted) {
@@ -978,46 +977,58 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
           title: const Text('Assign Facility & Service Management'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(current.name, style: Theme.of(dialogContext).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Text(
-                current.area ?? current.lastCheck,
-                style: Theme.of(dialogContext).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<int>(
-                initialValue: selectedStaff.id,
-                decoration: const InputDecoration(labelText: 'Assigned Staff'),
-                items: staffMembers
-                    .map(
-                      (staff) => DropdownMenuItem<int>(
-                        value: staff.id,
-                        child: Text('${staff.name} • ${staff.role}'),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  final matches =
-                      staffMembers.where((staff) => staff.id == value);
-                  final matched = matches.isEmpty ? null : matches.first;
-                  if (matched == null) {
-                    return;
-                  }
-                  setDialogState(() {
-                    selectedStaff = matched;
-                  });
-                },
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Staff will only see this assigned job in their facility queue.',
-                style: Theme.of(dialogContext).textTheme.bodySmall,
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(current.name,
+                    style: Theme.of(dialogContext).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  current.area ?? current.lastCheck,
+                  style: Theme.of(dialogContext).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: DropdownButtonFormField<int>(
+                    initialValue: selectedStaff.id,
+                    isExpanded: true,
+                    decoration:
+                        const InputDecoration(labelText: 'Assigned Staff'),
+                    items: staffMembers
+                        .map(
+                          (staff) => DropdownMenuItem<int>(
+                            value: staff.id,
+                            child: Text(
+                              '${staff.name} - ${staff.role}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      final matches =
+                          staffMembers.where((staff) => staff.id == value);
+                      final matched = matches.isEmpty ? null : matches.first;
+                      if (matched == null) {
+                        return;
+                      }
+                      setDialogState(() {
+                        selectedStaff = matched;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Staff will only see this assigned job in their facility queue.',
+                  style: Theme.of(dialogContext).textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -1082,10 +1093,12 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
   }
 
   String _assignmentPriority(MaintenanceFacility facility) {
-    if (facility.health < 70 || facility.status.toLowerCase().contains('urgent')) {
+    if (facility.health < 70 ||
+        facility.status.toLowerCase().contains('urgent')) {
       return 'High';
     }
-    if (facility.serviceType == 'parking' || facility.serviceType == 'in_unit') {
+    if (facility.serviceType == 'parking' ||
+        facility.serviceType == 'in_unit') {
       return 'Medium';
     }
     return 'Low';
@@ -1513,46 +1526,57 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
           title: const Text('Assign Custom Service'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                request.title,
-                style: Theme.of(dialogContext).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text('${request.residentName} • ${request.unitNumber}'),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<int>(
-                initialValue: selectedStaff.id,
-                decoration: const InputDecoration(labelText: 'Assigned Staff'),
-                items: staffMembers
-                    .map(
-                      (staff) => DropdownMenuItem<int>(
-                        value: staff.id,
-                        child: Text('${staff.name} • ${staff.role}'),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  final matches =
-                      staffMembers.where((staff) => staff.id == value);
-                  final match = matches.isEmpty ? null : matches.first;
-                  if (match == null) {
-                    return;
-                  }
-                  setDialogState(() {
-                    selectedStaff = match;
-                  });
-                },
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Staff will quote first. A real job is only created after the resident confirms that quote.',
-                style: Theme.of(dialogContext).textTheme.bodySmall,
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  request.title,
+                  style: Theme.of(dialogContext).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text('${request.residentName} - ${request.unitNumber}'),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: DropdownButtonFormField<int>(
+                    initialValue: selectedStaff.id,
+                    isExpanded: true,
+                    decoration:
+                        const InputDecoration(labelText: 'Assigned Staff'),
+                    items: staffMembers
+                        .map(
+                          (staff) => DropdownMenuItem<int>(
+                            value: staff.id,
+                            child: Text(
+                              '${staff.name} - ${staff.role}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      final matches =
+                          staffMembers.where((staff) => staff.id == value);
+                      final match = matches.isEmpty ? null : matches.first;
+                      if (match == null) {
+                        return;
+                      }
+                      setDialogState(() {
+                        selectedStaff = match;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Staff will quote first. A real job is only created after the resident confirms that quote.',
+                  style: Theme.of(dialogContext).textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(

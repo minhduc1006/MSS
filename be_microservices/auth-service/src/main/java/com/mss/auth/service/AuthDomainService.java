@@ -97,6 +97,13 @@ public class AuthDomainService {
             .toList();
     }
 
+    public List<AuthDtos.AdminContactItem> getAdminContacts() {
+        return repository.findByRoleOrderByFullNameAsc("admin").stream()
+            .sorted(userComparator())
+            .map(this::toAdminContact)
+            .toList();
+    }
+
     public AuthDtos.ResidentItem createResident(AuthDtos.CreateResidentRequest request) {
         ensureEmailAvailable(request.email(), null);
         AppUser user = new AppUser();
@@ -299,5 +306,16 @@ public class AuthDomainService {
 
     private AuthDtos.StaffItem toStaff(AppUser user) {
         return new AuthDtos.StaffItem(user.getId(), user.getFullName(), user.getJobTitle(), user.getShift(), user.getEmail(), user.getPhone(), user.getStatus(), user.getAvatarUrl());
+    }
+
+    private AuthDtos.AdminContactItem toAdminContact(AppUser user) {
+        return new AuthDtos.AdminContactItem(
+            user.getId(),
+            user.getFullName(),
+            user.getEmail(),
+            user.getPhone(),
+            user.getStatus(),
+            user.getAvatarUrl()
+        );
     }
 }

@@ -16,6 +16,7 @@ com\mss\auth\dto\AuthDtos$ChangePasswordRequest.class
 com\mss\auth\dto\AuthDtos$StaffItem.class
 com\mss\auth\dto\AuthDtos$CreateResidentRequest.class
 com\mss\auth\dto\AuthDtos$AccountStats.class
+com\mss\auth\dto\AuthDtos$AdminContactItem.class
 com\mss\auth\dto\AuthDtos$AccountResponse.class
 com\mss\auth\config\MailConfig.class
 com\mss\auth\dto\AuthDtos$CompletePasswordResetRequest.class
