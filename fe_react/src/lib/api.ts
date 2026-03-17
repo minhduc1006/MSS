@@ -1,5 +1,8 @@
 export const AUTH_API_BASE = import.meta.env.VITE_AUTH_API_BASE ?? "http://localhost:8081/api";
 export const BILLING_API_BASE = import.meta.env.VITE_BILLING_API_BASE ?? "http://localhost:8082/api";
+export const FACILITY_API_BASE = import.meta.env.VITE_FACILITY_API_BASE ?? "http://localhost:8083/api";
+export const SECURITY_API_BASE = import.meta.env.VITE_SECURITY_API_BASE ?? "http://localhost:8084/api/security";
+export const OPERATIONS_API_BASE = import.meta.env.VITE_OPERATIONS_API_BASE ?? "http://localhost:8085/api/operations";
 
 const SESSION_KEY = "mss-session";
 
@@ -34,6 +37,36 @@ export interface ResidentItem {
   avatarUrl: string | null;
 }
 
+export interface ActivityItem {
+  id: number;
+  type: string;
+  title: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface StaffItem {
+  id: number;
+  fullName: string;
+  role: string;
+  shift: string;
+  email: string;
+  phone: string;
+  status: string;
+  avatarUrl: string | null;
+}
+
+export interface AccountStats {
+  billCount: number;
+  guestCount: number;
+  openIssueCount: number;
+}
+
+export interface AccountResponse {
+  user: SessionUser;
+  stats: AccountStats;
+}
+
 export interface BillItem {
   id: number;
   residentId: number;
@@ -60,6 +93,76 @@ export interface BillingOverview {
   invoices: BillItem[];
 }
 
+export interface FacilityLogItem {
+  id: number;
+  note: string;
+  createdByName: string;
+  createdAt: string;
+  markOperational: boolean;
+}
+
+export interface FacilityItem {
+  id: number;
+  name: string;
+  area: string | null;
+  status: string;
+  health: number;
+  lastCheckAt: string | null;
+  icon: string | null;
+  description: string | null;
+  serviceType: string;
+  bookingMode: string;
+  oneTimePrice: number;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  slotCodes: string[];
+  occupiedSlotCodes: string[];
+  logs: FacilityLogItem[];
+}
+
+export interface FacilitiesResponse {
+  facilities: FacilityItem[];
+}
+
+export interface BookingItem {
+  id: number;
+  facilityId: number;
+  facilityName: string;
+  title: string;
+  bookingDate: string;
+  timeSlot: string;
+  status: string;
+  slotCode: string | null;
+  planType: string | null;
+  amount: number;
+}
+
+export interface AnnouncementItem {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  createdAt: string;
+}
+
+export interface CustomServiceRequestItem {
+  id: number;
+  residentId: number;
+  residentName: string;
+  unitNumber: string;
+  title: string;
+  description: string;
+  zone: string;
+  preferredSchedule: string | null;
+  status: string;
+  assignedStaffId: number | null;
+  assignedStaffName: string | null;
+  quotedPrice: number | null;
+  quoteNote: string | null;
+  residentDecisionNote: string | null;
+  createdAt: string;
+}
+
 export interface InvoiceEmailResponse {
   invoiceId: number;
   recipient: string | null;
@@ -70,6 +173,14 @@ export interface InvoiceEmailResponse {
 export interface CreateInvoiceResponse {
   invoice: BillItem;
   email: InvoiceEmailResponse;
+}
+
+export interface PaymentSession {
+  invoiceId: number;
+  orderCode: number;
+  paymentLinkId: string;
+  checkoutUrl: string;
+  status: string;
 }
 
 export async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {

@@ -1,10 +1,10 @@
 import Layout from "../components/Layout";
 import { ClipboardList, Shield, Construction, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
-import { useToast } from "../components/Toast";
+import { useNavigate } from "react-router-dom";
 
 export default function StaffDashboard() {
-  const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const tasks = [
     { id: 1, title: "Check Fire Extinguishers", zone: "Tower A, Floor 1-10", priority: "High", status: "Pending", icon: AlertCircle, color: "text-red-500 bg-red-50" },
@@ -39,7 +39,7 @@ export default function StaffDashboard() {
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">Assigned Tasks</h3>
-            <button className="text-[#137fec] text-xs font-bold">View All</button>
+            <button onClick={() => navigate("/staff/facilities")} className="text-[#137fec] text-xs font-bold">Open Tasks</button>
           </div>
 
           <div className="space-y-3">
@@ -48,7 +48,7 @@ export default function StaffDashboard() {
                 key={task.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={() => showToast(`Opening task: ${task.title}`, "info")}
+                onClick={() => navigate("/staff/facilities")}
                 className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all"
               >
                 <div className={`size-10 rounded-full flex items-center justify-center shrink-0 ${task.color}`}>
@@ -74,18 +74,18 @@ export default function StaffDashboard() {
 
         <div className="mt-8 grid grid-cols-2 gap-3">
           <button 
-            onClick={() => showToast("Incident report form opened", "info")}
+            onClick={() => navigate("/staff/security")}
             className="flex flex-col items-center justify-center p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl gap-2"
           >
             <Shield className="w-6 h-6 text-red-500" />
-            <span className="text-xs font-bold text-red-600">Report Incident</span>
+            <span className="text-xs font-bold text-red-600">Open Security</span>
           </button>
           <button 
-            onClick={() => showToast("Maintenance request form opened", "info")}
+            onClick={() => navigate("/staff/facilities")}
             className="flex flex-col items-center justify-center p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl gap-2"
           >
             <Construction className="w-6 h-6 text-[#137fec]" />
-            <span className="text-xs font-bold text-[#137fec]">Request Repair</span>
+            <span className="text-xs font-bold text-[#137fec]">Open Facilities</span>
           </button>
         </div>
       </div>

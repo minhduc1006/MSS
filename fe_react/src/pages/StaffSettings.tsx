@@ -1,99 +1,83 @@
 import Layout from "../components/Layout";
-import { User, Mail, Phone, MapPin, CreditCard, Shield, Bell, LogOut, ChevronRight, Moon, Sun } from "lucide-react";
-import { motion } from "motion/react";
-import { useToast } from "../components/Toast";
-import { useState, useEffect } from "react";
+import { Bell, LogOut, Moon, Shield, Sun, User } from "lucide-react";
+import { useState } from "react";
+import { clearSession } from "../lib/api";
 
 export default function StaffSettings() {
-  const { showToast } = useToast();
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
+    if (typeof window !== "undefined") {
+      return document.documentElement.classList.contains("dark");
     }
     return false;
   });
 
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
-  }, []);
-
-  const handleLogout = () => {
-    showToast("Logging out...", "info");
-    setTimeout(() => {
-      window.location.href = "/login";
-    }, 500);
+  const toggleDarkMode = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
   };
 
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    showToast(`${newMode ? 'Dark' : 'Light'} mode enabled`, "info");
+  const handleLogout = () => {
+    clearSession();
+    window.location.href = "/login";
   };
 
   const menuItems = [
-    { icon: User, label: "My Profile", color: "text-blue-500 bg-blue-50" },
-    { icon: Shield, label: "Security & Privacy", color: "text-purple-500 bg-purple-50" },
-    { icon: Bell, label: "Notification Settings", color: "text-yellow-500 bg-yellow-50" },
+    { icon: User, label: "My Profile", description: "Staff profile information" },
+    { icon: Shield, label: "Security & Privacy", description: "Security preferences" },
+    { icon: Bell, label: "Notification Settings", description: "Alert preferences" },
   ];
 
   return (
     <Layout title="Settings" role="staff">
       <div className="p-4">
-        <div className="flex flex-col items-center py-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
-          <div className="size-24 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-xl overflow-hidden mb-4">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=staff" alt="Avatar" className="w-full h-full object-cover" />
+        <div className="mb-6 flex flex-col items-center rounded-2xl border border-slate-200 bg-white py-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-4 flex size-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-xl dark:border-slate-800 dark:bg-slate-800">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=staff" alt="Avatar" className="h-full w-full object-cover" />
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100">Staff Member</h2>
-          <p className="text-xs font-bold text-[#137fec] uppercase tracking-widest mt-1">Maintenance Team • Level 2</p>
+          <p className="mt-1 text-xs font-bold uppercase tracking-widest text-[#137fec]">Maintenance Team · Level 2</p>
         </div>
 
         <div className="space-y-3">
-          {menuItems.map((item, index) => (
-            <motion.button 
-              key={index}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              onClick={() => showToast(`Opening ${item.label}`, "info")}
-              className="w-full bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between active:scale-[0.98] transition-all"
+          {menuItems.map((item) => (
+            <div
+              key={item.label}
+              className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="flex items-center gap-4">
-                <div className={`size-10 rounded-xl flex items-center justify-center ${item.color}`}>
-                  <item.icon className="w-5 h-5" />
+                <div className="flex size-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                  <item.icon className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{item.label}</span>
+                <div>
+                  <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">{item.label}</span>
+                  <span className="block text-xs text-slate-500 dark:text-slate-400">{item.description}</span>
+                </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-slate-400" />
-            </motion.button>
+            </div>
           ))}
 
-          <button 
+          <button
             onClick={toggleDarkMode}
-            className="w-full bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between active:scale-[0.98] transition-all"
+            className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="flex items-center gap-4">
-              <div className={`size-10 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400`}>
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              <div className="flex size-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </div>
               <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Dark Mode</span>
             </div>
-            <div className={`w-10 h-5 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-[#137fec]' : 'bg-slate-300'}`}>
-              <div className={`size-3 bg-white rounded-full transition-transform ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
+            <div className={`h-5 w-10 rounded-full p-1 transition-colors ${isDarkMode ? "bg-[#137fec]" : "bg-slate-300"}`}>
+              <div className={`size-3 rounded-full bg-white transition-transform ${isDarkMode ? "translate-x-5" : "translate-x-0"}`} />
             </div>
           </button>
         </div>
 
-        <button 
+        <button
           onClick={handleLogout}
-          className="w-full mt-8 flex items-center justify-center gap-2 py-4 bg-red-50 dark:bg-red-900/10 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-all active:scale-[0.98]"
+          className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 py-4 text-sm font-bold text-red-600 transition-all dark:bg-red-900/10"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="h-5 w-5" />
           Sign Out
         </button>
       </div>

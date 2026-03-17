@@ -1,158 +1,207 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowUpRight, Bolt, Download, Home, LoaderCircle, ParkingCircle, RefreshCw } from "lucide-react";
 import Layout from "../components/Layout";
-import { ReceiptText, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2, AlertCircle, X, CreditCard, ShieldCheck } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 import { useToast } from "../components/Toast";
+import { BILLING_API_BASE, apiRequest, getSession, type BillItem, type PaymentSession } from "../lib/api";
 
 export default function ResidentBills() {
   const { showToast } = useToast();
-  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
-  const [isPaying, setIsPaying] = useState(false);
+  const session = getSession();
+  const [bills, setBills] = useState<BillItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPayingId, setIsPayingId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const bills = [
-    { id: 1, title: "Monthly Maintenance", amount: "$150.00", date: "Mar 01, 2026", status: "Paid", type: "maintenance" },
-    { id: 2, title: "Electricity Bill", amount: "$85.40", date: "Feb 28, 2026", status: "Pending", type: "utility" },
-    { id: 3, title: "Water Usage", amount: "$32.10", date: "Feb 25, 2026", status: "Paid", type: "utility" },
-    { id: 4, title: "Parking Fee", amount: "$50.00", date: "Feb 20, 2026", status: "Overdue", type: "parking" },
-  ];
+  useEffect(() => {
+    if (session?.role === "resident") {
+      void loadBills();
+    } else {
+      setIsLoading(false);
+      setError("Please sign in as a resident to view bills.");
+    }
+  }, [session?.id, session?.role]);
 
-  const handlePayment = () => {
-    setIsPaying(true);
-    setTimeout(() => {
-      setIsPaying(false);
-      setIsPayModalOpen(false);
-      showToast("Payment successful! Your balance has been updated.", "success");
-    }, 2000);
-  };
+  const pendingBills = useMemo(() => bills.filter((bill) => bill.status !== "Paid"), [bills]);
+  const paidBills = useMemo(() => bills.filter((bill) => bill.status === "Paid"), [bills]);
+  const outstandingAmount = pendingBills.reduce((sum, bill) => sum + bill.amount, 0);
+  const lastPayment = [...paidBills].sort((left, right) => right.dueDate.localeCompare(left.dueDate))[0];
 
   return (
-    <Layout title="My Bills" role="resident">
+    <Layout title="Billing & Payments" role="resident">
       <div className="p-4">
-        <div className="bg-[#137fec] rounded-2xl p-6 text-white mb-6 shadow-lg shadow-[#137fec]/20">
-          <p className="text-xs font-bold uppercase tracking-widest opacity-80">Total Outstanding</p>
-          <h2 className="text-3xl font-extrabold mt-1">$135.40</h2>
-          <div className="flex gap-3 mt-6">
-            <button 
-              onClick={() => setIsPayModalOpen(true)}
-              className="flex-1 bg-white text-[#137fec] py-3 rounded-xl font-bold text-sm active:scale-[0.98] transition-all"
-            >
-              Pay Now
-            </button>
-            <button 
-              onClick={() => showToast("Downloading statement...", "info")}
-              className="flex-1 bg-white/20 backdrop-blur-md text-white py-3 rounded-xl font-bold text-sm active:scale-[0.98] transition-all"
-            >
-              Statement
-            </button>
+        <div className="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div>
+            <h2 className="text-lg font-bold">Resident Bills</h2>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Synced with `billing-service` and PayOS checkout flow.</p>
           </div>
+          <button
+            onClick={() => void loadBills()}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </button>
         </div>
 
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 px-1">Recent Transactions</h3>
-          <div className="space-y-3">
-            {bills.map((bill) => (
-              <motion.div 
-                key={bill.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={() => showToast(`Viewing details for ${bill.title}`, "info")}
-                className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all"
-              >
-                <div className={`size-10 rounded-full flex items-center justify-center shrink-0 ${
-                  bill.status === 'Paid' ? 'bg-green-100 text-green-600' : 
-                  bill.status === 'Pending' ? 'orange-100 text-orange-600' : 
-                  'bg-red-100 text-red-600'
-                }`}>
-                  {bill.status === 'Paid' ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold truncate">{bill.title}</h4>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{bill.date}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold">{bill.amount}</p>
-                  <span className={`text-[9px] font-bold uppercase tracking-tighter ${
-                    bill.status === 'Paid' ? 'text-green-500' : 
-                    bill.status === 'Pending' ? 'text-orange-500' : 
-                    'text-red-500'
-                  }`}>
-                    {bill.status}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+        <section className="mb-6 grid grid-cols-2 gap-4">
+          <MetricCard label="Outstanding" value={formatCurrency(outstandingAmount)} note={`${pendingBills.length} active`} />
+          <MetricCard label="Last Payment" value={lastPayment ? formatDate(lastPayment.dueDate) : "No payments yet"} note={lastPayment ? formatCurrency(lastPayment.amount) : "Waiting for first payment"} />
+        </section>
+
+        <div className="mb-6 flex gap-3">
+          <button
+            disabled={pendingBills.length === 0 || isPayingId !== null}
+            onClick={() => void payBill(pendingBills[0])}
+            className="flex-1 rounded-xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
+          >
+            Pay Now
+          </button>
+          <button
+            onClick={() => void exportStatement()}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+          >
+            <Download className="h-4 w-4" />
+            Statement
+          </button>
         </div>
+
+        <section>
+          <h3 className="mb-3 text-sm font-bold uppercase tracking-widest text-slate-400">Recent Bills</h3>
+          {isLoading ? (
+            <Block text="Loading resident bills..." />
+          ) : error ? (
+            <ErrorBlock message={error} />
+          ) : bills.length === 0 ? (
+            <Block text="No bills available right now." />
+          ) : (
+            <div className="space-y-3">
+              {bills.map((bill) => (
+                <div key={bill.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <div className="flex items-start gap-3">
+                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${statusTone(bill.status)}`}>
+                      {bill.category === "parking" ? <ParkingCircle className="h-5 w-5" /> : bill.category === "maintenance" ? <Home className="h-5 w-5" /> : <Bolt className="h-5 w-5" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h4 className="text-sm font-bold">{bill.title}</h4>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatDate(bill.dueDate)}</p>
+                          {bill.description && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{bill.description}</p>}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold">{formatCurrency(bill.amount)}</p>
+                          <span className="mt-2 inline-block rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                            {bill.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      {bill.status !== "Paid" && (
+                        <button
+                          disabled={isPayingId === bill.id}
+                          onClick={() => void payBill(bill)}
+                          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#137fec]/10 px-4 py-2.5 text-sm font-bold text-[#137fec] disabled:opacity-50"
+                        >
+                          {isPayingId === bill.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />}
+                          Pay
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
-
-      {/* Payment Modal */}
-      <AnimatePresence>
-        {isPayModalOpen && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsPayModalOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] max-w-md mx-auto"
-            />
-            <motion.div 
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-x-0 bottom-0 max-w-md mx-auto bg-white dark:bg-[#101922] rounded-t-[32px] z-[110] p-6 pb-10 shadow-2xl"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-[#137fec]/10 text-[#137fec] flex items-center justify-center">
-                    <CreditCard className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">Secure Payment</h3>
-                    <p className="text-xs text-slate-500 font-medium">Total: $135.40</p>
-                  </div>
-                </div>
-                <button onClick={() => setIsPayModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                  <X className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
-
-              <div className="space-y-4 mb-8">
-                <div className="p-4 rounded-2xl border border-[#137fec] bg-[#137fec]/5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center">
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="w-8" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold">Visa •••• 4242</p>
-                      <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Default Payment Method</p>
-                    </div>
-                  </div>
-                  <CheckCircle2 className="w-5 h-5 text-[#137fec]" />
-                </div>
-
-                <div className="flex items-center gap-2 px-2 py-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                  <ShieldCheck className="w-4 h-4 text-green-500" />
-                  <p className="text-[10px] text-slate-500 font-medium">Your transaction is encrypted and secure.</p>
-                </div>
-              </div>
-
-              <button 
-                disabled={isPaying}
-                onClick={handlePayment}
-                className="w-full py-4 bg-[#137fec] text-white rounded-2xl font-bold text-sm shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
-              >
-                {isPaying ? (
-                  <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  "Pay $135.40"
-                )}
-              </button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </Layout>
   );
+
+  async function loadBills() {
+    if (!session) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await apiRequest<BillItem[]>(`${BILLING_API_BASE}/billing/resident/${session.id}`);
+      setBills(data);
+    } catch (loadError) {
+      const message = loadError instanceof Error ? loadError.message : "Unable to load resident bills.";
+      setError(message);
+      showToast(message, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function payBill(bill: BillItem) {
+    if (!bill.id) return;
+    setIsPayingId(bill.id);
+    try {
+      const data = await apiRequest<PaymentSession>(`${BILLING_API_BASE}/billing/${bill.id}/checkout`, {
+        method: "POST",
+        body: JSON.stringify({
+          returnUrl: window.location.href,
+          cancelUrl: window.location.href,
+        }),
+      });
+      window.open(data.checkoutUrl, "_blank", "noopener,noreferrer");
+      showToast("PayOS checkout opened in a new tab.", "success");
+    } catch (payError) {
+      showToast(payError instanceof Error ? payError.message : "Unable to open checkout.", "error");
+    } finally {
+      setIsPayingId(null);
+    }
+  }
+
+  async function exportStatement() {
+    if (bills.length === 0) {
+      showToast("No bills available to export.", "info");
+      return;
+    }
+
+    const rows = ["Title,Amount,Due Date,Status"];
+    for (const bill of bills) {
+      rows.push(`"${bill.title.replaceAll('"', '""')}",${bill.amount},${bill.dueDate},${bill.status}`);
+    }
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "resident_statement.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast("Statement downloaded.", "success");
+  }
+}
+
+function MetricCard({ label, value, note }: { label: string; value: string; note: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">{label}</p>
+      <p className="mt-2 text-2xl font-extrabold">{value}</p>
+      <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{note}</p>
+    </div>
+  );
+}
+
+function Block({ text }: { text: string }) {
+  return <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">{text}</div>;
+}
+
+function ErrorBlock({ message }: { message: string }) {
+  return <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-900/10 dark:text-rose-300">{message}</div>;
+}
+
+function statusTone(status: string) {
+  if (status === "Paid") return "bg-emerald-100 text-emerald-600";
+  if (status === "Pending") return "bg-amber-100 text-amber-600";
+  return "bg-rose-100 text-rose-600";
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value);
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
 }

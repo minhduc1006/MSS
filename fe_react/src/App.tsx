@@ -3,8 +3,10 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import ResetPasswordNew from "./pages/ResetPasswordNew";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminActivity from "./pages/AdminActivity";
 import ResidentDashboard from "./pages/ResidentDashboard";
 import ResidentBills from "./pages/ResidentBills";
+import ResidentBookings from "./pages/ResidentBookings";
 import ResidentSecurity from "./pages/ResidentSecurity";
 import ResidentAccount from "./pages/ResidentAccount";
 import ResidentList from "./pages/ResidentList";
@@ -28,6 +30,7 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/reset-password/new" element={<ResetPasswordNew />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/activity" element={<AdminActivity />} />
           <Route path="/admin/residents" element={<ResidentList />} />
           <Route path="/admin/staff" element={<StaffList />} />
           <Route path="/admin/billing" element={<Billing />} />
@@ -36,6 +39,7 @@ export default function App() {
           <Route path="/admin/security" element={<Security />} />
           <Route path="/resident" element={<ResidentDashboard />} />
           <Route path="/resident/bills" element={<ResidentBills />} />
+          <Route path="/resident/bookings" element={<ResidentBookings />} />
           <Route path="/resident/security" element={<ResidentSecurity />} />
           <Route path="/resident/account" element={<ResidentAccount />} />
           <Route path="/staff" element={<StaffDashboard />} />
