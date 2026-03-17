@@ -1,123 +1,223 @@
+import { useEffect, useState } from "react";
+import { Bell, CreditCard, LoaderCircle, LogOut, Moon, Shield, Sun, User } from "lucide-react";
 import Layout from "../components/Layout";
-import { User, Mail, Phone, MapPin, CreditCard, Shield, Bell, LogOut, ChevronRight, Moon, Sun } from "lucide-react";
-import { motion } from "motion/react";
 import { useToast } from "../components/Toast";
-import { useState, useEffect } from "react";
-import { clearSession } from "../lib/api";
+import { AUTH_API_BASE, apiRequest, clearSession, getSession, type AccountResponse } from "../lib/api";
 
 export default function ResidentAccount() {
   const { showToast } = useToast();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return false;
-  });
+  const session = getSession();
+  const [isDarkMode, setIsDarkMode] = useState(() => document.documentElement.classList.contains("dark"));
+  const [summary, setSummary] = useState<AccountResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "" });
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
-  }, []);
-
-  const handleLogout = () => {
-    showToast("Logging out...", "info");
-    clearSession();
-    setTimeout(() => {
-      window.location.href = "/login";
-    }, 500);
-  };
+    if (session?.role === "resident") {
+      void loadAccount();
+    } else {
+      setIsLoading(false);
+      setError("Please sign in as a resident to view account details.");
+    }
+  }, [session?.id, session?.role]);
 
   const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    showToast(`${newMode ? 'Dark' : 'Light'} mode enabled`, "info");
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
   };
 
-  const menuItems = [
-    { icon: User, label: "Personal Information", color: "text-blue-500 bg-blue-50" },
-    { icon: MapPin, label: "My Apartment (Unit 402)", color: "text-green-500 bg-green-50" },
-    { icon: CreditCard, label: "Payment Methods", color: "text-orange-500 bg-orange-50" },
-    { icon: Shield, label: "Security & Privacy", color: "text-purple-500 bg-purple-50" },
-    { icon: Bell, label: "Notification Settings", color: "text-yellow-500 bg-yellow-50" },
-  ];
+  const handleLogout = () => {
+    clearSession();
+    window.location.href = "/login";
+  };
 
   return (
-    <Layout title="My Account" role="resident">
+    <Layout title="Account" role="resident">
       <div className="p-4">
-        <div className="flex flex-col items-center py-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
-          <div className="size-24 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-xl overflow-hidden mb-4">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=resident" alt="Avatar" className="w-full h-full object-cover" />
-          </div>
-          <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100">Alex Johnson</h2>
-          <p className="text-xs font-bold text-[#137fec] uppercase tracking-widest mt-1">Tower A • Unit 402</p>
-          
-          <div className="flex gap-4 mt-6">
-            <div className="flex flex-col items-center">
-              <span className="text-lg font-extrabold">12</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bills</span>
-            </div>
-            <div className="w-px h-8 bg-slate-100 dark:bg-slate-800 self-center"></div>
-            <div className="flex flex-col items-center">
-              <span className="text-lg font-extrabold">3</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Guests</span>
-            </div>
-            <div className="w-px h-8 bg-slate-100 dark:bg-slate-800 self-center"></div>
-            <div className="flex flex-col items-center">
-              <span className="text-lg font-extrabold">0</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Issues</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {menuItems.map((item, index) => (
-            <motion.button 
-              key={index}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              onClick={() => showToast(`Opening ${item.label}`, "info")}
-              className="w-full bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between active:scale-[0.98] transition-all"
-            >
+        {isLoading ? (
+          <Block text="Loading account..." />
+        ) : error ? (
+          <ErrorBlock message={error} />
+        ) : summary ? (
+          <>
+            <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="flex items-center gap-4">
-                <div className={`size-10 rounded-xl flex items-center justify-center ${item.color}`}>
-                  <item.icon className="w-5 h-5" />
+                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${summary.user.fullName}`} alt="Avatar" className="h-full w-full object-cover" />
                 </div>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{item.label}</span>
+                <div className="min-w-0">
+                  <h2 className="truncate text-xl font-extrabold">{summary.user.fullName}</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Resident - Unit {summary.user.unitNumber ?? "N/A"}</p>
+                  <p className="text-xs text-slate-400">{summary.user.email}</p>
+                </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-slate-400" />
-            </motion.button>
-          ))}
 
-          <button 
-            onClick={toggleDarkMode}
-            className="w-full bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between active:scale-[0.98] transition-all"
-          >
-            <div className="flex items-center gap-4">
-              <div className={`size-10 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400`}>
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              <div className="mt-6 grid grid-cols-3 gap-3">
+                <MetricCard label="Bills" value={summary.stats.billCount} />
+                <MetricCard label="Guests" value={summary.stats.guestCount} />
+                <MetricCard label="Issues" value={summary.stats.openIssueCount} />
               </div>
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Dark Mode</span>
             </div>
-            <div className={`w-10 h-5 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-[#137fec]' : 'bg-slate-300'}`}>
-              <div className={`size-3 bg-white rounded-full transition-transform ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
-            </div>
-          </button>
-        </div>
 
-        <button 
-          onClick={handleLogout}
-          className="w-full mt-8 flex items-center justify-center gap-2 py-4 bg-red-50 dark:bg-red-900/10 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-all active:scale-[0.98]"
-        >
-          <LogOut className="w-5 h-5" />
-          Sign Out
-        </button>
+            <div className="space-y-3">
+              <MenuCard icon={User} title="Profile Details" subtitle={summary.user.email} />
+              <MenuCard icon={Shield} title="Change Password" subtitle="Update your account password" onClick={() => setIsPasswordModalOpen(true)} />
+              <MenuCard icon={CreditCard} title="Payment Preferences" subtitle="Managed through your bill checkout flow" />
+              <MenuCard icon={Bell} title="Notifications" subtitle="Email and in-app alerts" />
+
+              <button
+                onClick={toggleDarkMode}
+                className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-bold">Dark Mode</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Toggle app appearance</p>
+                  </div>
+                </div>
+                <div className={`h-5 w-10 rounded-full p-1 ${isDarkMode ? "bg-[#137fec]" : "bg-slate-300"}`}>
+                  <div className={`h-3 w-3 rounded-full bg-white transition-transform ${isDarkMode ? "translate-x-5" : "translate-x-0"}`} />
+                </div>
+              </button>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 py-4 text-sm font-bold text-red-600 dark:bg-red-900/10"
+            >
+              <LogOut className="h-5 w-5" />
+              Sign Out
+            </button>
+          </>
+        ) : null}
       </div>
+
+      {isPasswordModalOpen && (
+        <>
+          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm" onClick={() => setIsPasswordModalOpen(false)} />
+          <div className="fixed inset-x-4 bottom-0 z-[110] mx-auto rounded-t-[32px] bg-white p-6 pb-10 shadow-2xl dark:bg-[#101922] sm:max-w-xl lg:inset-x-0 lg:top-1/2 lg:bottom-auto lg:w-full lg:max-w-xl lg:-translate-y-1/2 lg:rounded-[32px] lg:pb-6">
+            <h3 className="text-lg font-bold">Change Password</h3>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Use the same backend password flow as Flutter.</p>
+
+            <div className="mt-4 space-y-4">
+              <input
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
+                placeholder="Current password"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900"
+              />
+              <input
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
+                placeholder="New password"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900"
+              />
+            </div>
+
+            <button
+              disabled={isSavingPassword}
+              onClick={() => void changePassword()}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#137fec] py-4 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {isSavingPassword ? <LoaderCircle className="h-5 w-5 animate-spin" /> : "Change Password"}
+            </button>
+          </div>
+        </>
+      )}
     </Layout>
   );
+
+  async function loadAccount() {
+    if (!session) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await apiRequest<AccountResponse>(`${AUTH_API_BASE}/users/${session.id}/account`);
+      setSummary(data);
+    } catch (loadError) {
+      const message = loadError instanceof Error ? loadError.message : "Unable to load account.";
+      setError(message);
+      showToast(message, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function changePassword() {
+    if (!session) return;
+    if (passwordForm.newPassword.trim().length < 8) {
+      showToast("New password must have at least 8 characters.", "error");
+      return;
+    }
+
+    setIsSavingPassword(true);
+    try {
+      await apiRequest<void>(`${AUTH_API_BASE}/users/${session.id}/change-password`, {
+        method: "POST",
+        body: JSON.stringify(passwordForm),
+      });
+      setIsPasswordModalOpen(false);
+      setPasswordForm({ currentPassword: "", newPassword: "" });
+      showToast("Password changed successfully.", "success");
+    } catch (saveError) {
+      showToast(saveError instanceof Error ? saveError.message : "Unable to change password.", "error");
+    } finally {
+      setIsSavingPassword(false);
+    }
+  }
+}
+
+function MenuCard({
+  icon: Icon,
+  title,
+  subtitle,
+  onClick,
+}: {
+  icon: typeof User;
+  title: string;
+  subtitle: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm dark:border-slate-800 dark:bg-slate-900"
+    >
+      <div className="flex items-center gap-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#137fec]/10 text-[#137fec]">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="text-sm font-bold">{title}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl bg-slate-50 p-3 text-center dark:bg-slate-800/70">
+      <p className="text-lg font-extrabold">{value}</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+    </div>
+  );
+}
+
+function Block({ text }: { text: string }) {
+  return <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">{text}</div>;
+}
+
+function ErrorBlock({ message }: { message: string }) {
+  return <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-900/10 dark:text-rose-300">{message}</div>;
 }

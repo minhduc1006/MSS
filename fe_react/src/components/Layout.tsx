@@ -2,9 +2,9 @@ import { ReactNode, useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { useToast } from "./Toast";
 import { 
-  LayoutDashboard, Users, ReceiptText, Shield, Settings, Bell, Menu, 
-  Construction, Building2, LogOut, UserCheck, X, User, CreditCard, 
-  HelpCircle, Info, Moon, Sun
+  LayoutDashboard, Users, ReceiptText, Shield, Settings, Bell, Menu,
+  Construction, Building2, LogOut, UserCheck, X, 
+  Moon, Sun
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from "clsx";
@@ -79,12 +79,22 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
     : [
         { icon: LayoutDashboard, label: "Home", path: "/resident" },
         { icon: ReceiptText, label: "Bills", path: "/resident/bills" },
+        { icon: Construction, label: "Services", path: "/resident/bookings" },
         { icon: Shield, label: "Security", path: "/resident/security" },
         { icon: Settings, label: "Account", path: "/resident/account" },
       ];
 
+  const isAdmin = role === "admin";
+
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto bg-white dark:bg-[#101922] shadow-2xl font-['Manrope']">
+    <div
+      className={cn(
+        "relative min-h-screen w-full overflow-x-hidden font-['Manrope']",
+        isAdmin
+          ? "bg-slate-100 text-slate-900 dark:bg-[#0b1220] lg:p-4"
+          : "max-w-md mx-auto flex flex-col bg-white shadow-2xl dark:bg-[#101922]",
+      )}
+    >
       {/* Side Menu Drawer */}
       <AnimatePresence>
         {isMenuOpen && (
@@ -94,7 +104,10 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 max-w-md mx-auto"
+              className={cn(
+                "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm",
+                !isAdmin && "max-w-md mx-auto",
+              )}
             />
             <motion.div 
               initial={{ x: "-100%" }}
@@ -157,14 +170,6 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
                   </div>
                 </button>
 
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-sm transition-all">
-                  <HelpCircle className="w-5 h-5" />
-                  Support Center
-                </button>
-                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-sm transition-all">
-                  <Info className="w-5 h-5" />
-                  About App
-                </button>
               </div>
 
               <div className="p-6 border-t border-slate-100 dark:border-slate-800">
@@ -181,55 +186,132 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <header className="sticky top-0 z-30 flex flex-col bg-white/80 dark:bg-[#101922]/80 backdrop-blur-md border-b border-[#137fec]/10">
-        <div className="flex items-center p-4 justify-between">
-          <button 
-            onClick={() => setIsMenuOpen(true)}
-            className="text-slate-900 dark:text-slate-100 flex size-10 items-center justify-center rounded-full hover:bg-[#137fec]/10 cursor-pointer transition-colors"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-          <h2 className="text-lg font-bold tracking-tight flex-1 px-2 text-slate-900 dark:text-slate-100">{title}</h2>
-          <div className="flex gap-2">
-            <button 
-              onClick={handleNotifications}
-              className="flex size-10 items-center justify-center rounded-full hover:bg-[#137fec]/10 text-[#137fec] transition-colors"
-            >
-              <Bell className="w-6 h-6" />
-            </button>
-            <div className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${role}`} alt="Avatar" className="w-full h-full object-cover" />
+      <div className={cn(isAdmin && "lg:grid lg:min-h-[calc(100vh-2rem)] lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-4")}>
+        {isAdmin && (
+          <aside className="hidden lg:flex lg:flex-col lg:rounded-[28px] lg:border lg:border-white/60 lg:bg-white lg:p-5 lg:shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-[#101922]">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-5 dark:border-slate-800">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-[#137fec] text-lg font-bold text-white shadow-lg shadow-blue-500/30">S</div>
+              <div>
+                <h1 className="text-base font-extrabold text-slate-900 dark:text-slate-100">Skyline Heights</h1>
+                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#137fec]">Admin Portal</p>
+              </div>
             </div>
-          </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 pb-24 overflow-y-auto">
-        {children}
-      </main>
+            <div className="mt-6 space-y-1">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all",
+                      isActive
+                        ? "bg-[#137fec] text-white shadow-lg shadow-blue-500/25"
+                        : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/80",
+                    )
+                  }
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto flex items-center bg-white/90 dark:bg-[#101922]/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-4 pb-6 pt-2 z-40">
-        {navItems.slice(0, 4).map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) => cn(
-              "flex flex-1 flex-col items-center justify-center gap-1 transition-all",
-              isActive ? "text-[#137fec]" : "text-slate-400 dark:text-slate-500"
+            <div className="mt-auto space-y-3 pt-6">
+              <button
+                onClick={toggleDarkMode}
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-[#137fec]/30 dark:border-slate-700 dark:bg-[#101922] dark:text-slate-200"
+              >
+                <div className="flex items-center gap-3">
+                  {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
+                </div>
+                <div className={cn("h-5 w-10 rounded-full p-1 transition-colors", isDarkMode ? "bg-[#137fec]" : "bg-slate-300")}>
+                  <div className={cn("size-3 rounded-full bg-white transition-transform", isDarkMode ? "translate-x-5" : "translate-x-0")} />
+                </div>
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 py-3 text-sm font-bold text-red-600 transition-all hover:bg-red-100 dark:bg-red-900/10"
+              >
+                <LogOut className="h-5 w-5" />
+                Sign Out
+              </button>
+            </div>
+          </aside>
+        )}
+
+        <div
+          className={cn(
+            "relative flex min-h-screen flex-col",
+            isAdmin
+              ? "bg-transparent lg:min-h-[calc(100vh-2rem)]"
+              : "bg-white dark:bg-[#101922]",
+          )}
+        >
+          {/* Header */}
+          <header
+            className={cn(
+              "sticky top-0 z-30 flex flex-col backdrop-blur-md",
+              isAdmin
+                ? "border-b border-slate-200/80 bg-white/85 dark:border-slate-800 dark:bg-[#101922]/85 lg:rounded-[28px] lg:border lg:bg-white/92 lg:px-2"
+                : "border-b border-[#137fec]/10 bg-white/80 dark:bg-[#101922]/80",
             )}
           >
-            {({ isActive }) => (
-              <>
-                <item.icon className={cn("w-6 h-6 transition-transform", isActive && "scale-110")} />
-                <p className="text-[10px] font-bold uppercase tracking-wider">{item.label}</p>
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
+            <div className="flex items-center justify-between p-4">
+              <button 
+                onClick={() => setIsMenuOpen(true)}
+                className={cn(
+                  "flex size-10 items-center justify-center rounded-full text-slate-900 transition-colors hover:bg-[#137fec]/10 dark:text-slate-100",
+                  isAdmin && "lg:hidden",
+                )}
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <div className="min-w-0 flex-1 px-2">
+                <h2 className="truncate text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">{title}</h2>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleNotifications}
+                  className="flex size-10 items-center justify-center rounded-full text-[#137fec] transition-colors hover:bg-[#137fec]/10"
+                >
+                  <Bell className="w-6 h-6" />
+                </button>
+                <div className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${role}`} alt="Avatar" className="h-full w-full object-cover" />
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className={cn("flex-1 overflow-y-auto", isAdmin ? "pb-8 lg:pt-2" : "pb-24")}>
+            {children}
+          </main>
+
+          {/* Bottom Navigation */}
+          <nav className={cn("fixed bottom-0 left-0 right-0 z-40 flex items-center bg-white/90 px-4 pb-6 pt-2 backdrop-blur-xl dark:bg-[#101922]/90", isAdmin ? "mx-auto max-w-md border-t border-slate-200 dark:border-slate-800 lg:hidden" : "max-w-md mx-auto border-t border-slate-200 dark:border-slate-800")}>
+            {(isAdmin ? navItems.slice(0, 4) : navItems).map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) => cn(
+                  "flex flex-1 flex-col items-center justify-center gap-1 transition-all",
+                  isActive ? "text-[#137fec]" : "text-slate-400 dark:text-slate-500"
+                )}
+              >
+                {({ isActive }) => (
+                  <>
+                    <item.icon className={cn("w-6 h-6 transition-transform", isActive && "scale-110")} />
+                    <p className="text-[10px] font-bold uppercase tracking-wider">{item.label}</p>
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      </div>
     </div>
   );
 }

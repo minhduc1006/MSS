@@ -1,11 +1,8 @@
 import Layout from "../components/Layout";
-import { Shield, Lock, Eye, Bell, UserCheck, AlertTriangle, Search, Filter } from "lucide-react";
+import { Shield, AlertTriangle, Search, Filter } from "lucide-react";
 import { motion } from "motion/react";
-import { useToast } from "../components/Toast";
 
 export default function StaffSecurity() {
-  const { showToast } = useToast();
-
   const securityLogs = [
     { id: 1, event: "Guest Entry", visitor: "John Doe", time: "10:30 AM", status: "Authorized" },
     { id: 2, event: "Gate Access", visitor: "Resident (Self)", time: "08:15 AM", status: "Success" },
@@ -24,9 +21,9 @@ export default function StaffSecurity() {
               className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#137fec]"
             />
           </div>
-          <button className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+          <div className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
             <Filter className="w-5 h-5 text-slate-500" />
-          </button>
+          </div>
         </div>
 
         <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 mb-6 flex items-center gap-4">
@@ -37,12 +34,9 @@ export default function StaffSecurity() {
             <h4 className="text-sm font-bold text-red-700 dark:text-red-400">Emergency SOS</h4>
             <p className="text-[10px] font-medium text-red-600 dark:text-red-500">Alert security team immediately</p>
           </div>
-          <button 
-            onClick={() => showToast("SOS Alert Sent to Security!", "error")}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-xs active:scale-[0.95] transition-all"
-          >
-            ACTIVATE
-          </button>
+          <span className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-xs">
+            MONITOR
+          </span>
         </div>
 
         <div className="space-y-4">

@@ -3,9 +3,11 @@ import Layout from "../components/Layout";
 import { useToast } from "../components/Toast";
 import { Users, Bed, Wallet, Wrench, Plus, Receipt, Construction, ShieldCheck, X, Save, UserPlus } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [stats, setStats] = useState({
@@ -34,7 +36,7 @@ export default function AdminDashboard() {
 
   return (
     <Layout title="Skyline Heights" role="admin">
-      <div className="p-4">
+      <div className="p-4 lg:p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="bg-[#137fec]/10 p-2 rounded-lg">
             <ShieldCheck className="text-[#137fec] w-6 h-6" />
@@ -45,7 +47,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <section className="grid grid-cols-2 gap-4 mb-6">
+        <section className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -110,13 +112,13 @@ export default function AdminDashboard() {
           </motion.div>
         </section>
 
-        <div className="mb-6">
+        <div className="mb-6 lg:max-w-sm">
           <button 
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => navigate("/admin/residents")}
             className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 bg-[#137fec] text-white gap-2 text-base font-bold shadow-lg shadow-[#137fec]/25 active:scale-95 transition-transform"
           >
             <Plus className="w-5 h-5" />
-            <span>Add New Resident</span>
+            <span>Open Resident Management</span>
           </button>
         </div>
 
@@ -124,13 +126,13 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold tracking-tight">Recent Activity</h3>
             <button 
-              onClick={() => showToast("Loading all activities...", "info")}
+              onClick={() => navigate("/admin/activity")}
               className="text-[#137fec] text-sm font-semibold"
             >
               View All
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 xl:grid xl:grid-cols-3 xl:gap-4 xl:space-y-0">
             {recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-start gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
                 <div className={`size-10 rounded-full flex items-center justify-center shrink-0 ${activity.color}`}>
@@ -156,14 +158,14 @@ export default function AdminDashboard() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsAddModalOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] max-w-md mx-auto"
+              className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
             />
             <motion.div 
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-x-0 bottom-0 max-w-md mx-auto bg-white dark:bg-[#101922] rounded-t-[32px] z-[110] p-6 pb-10 shadow-2xl"
+              className="fixed inset-x-4 bottom-0 z-[110] mx-auto rounded-t-[32px] bg-white p-6 pb-10 shadow-2xl dark:bg-[#101922] sm:max-w-xl lg:inset-x-0 lg:top-1/2 lg:bottom-auto lg:w-full lg:max-w-2xl lg:-translate-y-1/2 lg:rounded-[32px] lg:pb-6"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">

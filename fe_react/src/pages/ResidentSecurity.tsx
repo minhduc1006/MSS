@@ -2,10 +2,8 @@ import { useState } from "react";
 import Layout from "../components/Layout";
 import { Shield, Lock, Eye, Bell, UserCheck, AlertTriangle, X, QrCode, Camera } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useToast } from "../components/Toast";
 
 export default function ResidentSecurity() {
-  const { showToast } = useToast();
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   const securityLogs = [
@@ -46,12 +44,9 @@ export default function ResidentSecurity() {
             <h4 className="text-sm font-bold text-red-700 dark:text-red-400">Emergency SOS</h4>
             <p className="text-[10px] font-medium text-red-600 dark:text-red-500">Alert security team immediately</p>
           </div>
-          <button 
-            onClick={() => showToast("SOS Alert Sent to Security!", "error")}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-xs active:scale-[0.95] transition-all"
-          >
-            ACTIVATE
-          </button>
+          <span className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-xs">
+            EMERGENCY
+          </span>
         </div>
 
         <div className="space-y-4">

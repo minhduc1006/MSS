@@ -1,5 +1,4 @@
 import { LucideIcon, Plus, Edit, Trash, Eye, Search, Check, X, UserPlus, Calendar, Bell, Download, Upload, Activity, Monitor, FileText, Settings, ShieldCheck, ClipboardCheck } from "lucide-react";
-import { useToast } from "./Toast";
 
 interface Action {
   label: string;
@@ -11,13 +10,11 @@ interface Action {
 interface ActionGridProps {
   onAction: (action: string) => void;
   extraActions?: boolean;
+  visibleActions?: string[];
 }
 
-export default function ActionGrid({ onAction, extraActions = false }: ActionGridProps) {
-  const { showToast } = useToast();
-
+export default function ActionGrid({ onAction, extraActions = false, visibleActions }: ActionGridProps) {
   const handleAction = (label: string) => {
-    showToast(`Action "${label}" triggered successfully`, "success");
     onAction(label);
   };
 
@@ -46,14 +43,21 @@ export default function ActionGrid({ onAction, extraActions = false }: ActionGri
   ];
 
   const actions = extraActions ? [...baseActions, ...extraItems] : baseActions;
+  const filteredActions = visibleActions?.length
+    ? actions.filter((action) => visibleActions.includes(action.label))
+    : actions;
+
+  if (filteredActions.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="grid grid-cols-3 gap-3 p-4">
-      {actions.map((action) => (
+    <div className="grid grid-cols-3 gap-3 p-4 sm:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+      {filteredActions.map((action) => (
         <button
           key={action.label}
           onClick={action.onClick}
-          className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-[#137fec] transition-all active:scale-95"
+          className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-[#137fec] active:scale-95 dark:border-slate-800 dark:bg-slate-900 lg:min-h-28"
         >
           <div className={`p-2 rounded-lg ${action.color} text-white`}>
             <action.icon className="w-5 h-5" />

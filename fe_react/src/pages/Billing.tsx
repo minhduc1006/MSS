@@ -113,8 +113,8 @@ export default function Billing() {
 
   return (
     <Layout title="Billing & Payments" role="admin">
-      <div className="p-4">
-        <section className="flex flex-wrap gap-3 mb-6">
+      <div className="p-4 lg:p-6">
+        <section className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-800 shadow-sm border border-[#137fec]/5">
             <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Total Invoiced</p>
             <p className="text-2xl font-extrabold">{formatCurrency(summary?.totalInvoiced ?? 0)}</p>
@@ -127,6 +127,24 @@ export default function Billing() {
             <p className="text-2xl font-extrabold">{formatCurrency(summary?.totalOutstanding ?? 0)}</p>
             <div className="flex items-center gap-1 text-amber-500">
               <p className="text-xs font-bold">{summary?.activeInvoices ?? 0} Active</p>
+            </div>
+          </div>
+          <div className="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl border border-[#137fec]/5 bg-white p-4 shadow-sm dark:bg-slate-800">
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Collection Ratio</p>
+            <p className="text-2xl font-extrabold">
+              {summary && summary.totalInvoiced > 0
+                ? `${Math.round(((summary.totalInvoiced - summary.totalOutstanding) / summary.totalInvoiced) * 100)}%`
+                : "0%"}
+            </p>
+            <div className="flex items-center gap-1 text-emerald-500">
+              <p className="text-xs font-bold">Based on paid value</p>
+            </div>
+          </div>
+          <div className="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl border border-[#137fec]/5 bg-white p-4 shadow-sm dark:bg-slate-800">
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Settled Value</p>
+            <p className="text-2xl font-extrabold">{formatCurrency((summary?.totalInvoiced ?? 0) - (summary?.totalOutstanding ?? 0))}</p>
+            <div className="flex items-center gap-1">
+              <span className="text-slate-500 text-xs font-bold">Collected so far</span>
             </div>
           </div>
         </section>
@@ -142,7 +160,7 @@ export default function Billing() {
               Create Invoice
             </button>
           </div>
-          <ActionGrid onAction={handleAction} />
+          <ActionGrid onAction={handleAction} visibleActions={["Create"]} />
         </div>
 
         <div className="mb-6 rounded-2xl border border-[#137fec]/10 bg-[#137fec]/5 px-4 py-3 text-xs font-medium text-slate-600 dark:text-slate-300">
@@ -235,14 +253,14 @@ export default function Billing() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsCreateModalOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] max-w-md mx-auto"
+              className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-x-0 bottom-0 max-w-md mx-auto bg-white dark:bg-[#101922] rounded-t-[32px] z-[110] p-6 pb-10 shadow-2xl"
+              className="fixed inset-x-4 bottom-0 z-[110] mx-auto rounded-t-[32px] bg-white p-6 pb-10 shadow-2xl dark:bg-[#101922] sm:max-w-xl lg:inset-x-0 lg:top-1/2 lg:bottom-auto lg:w-full lg:max-w-2xl lg:-translate-y-1/2 lg:rounded-[32px] lg:pb-6"
             >
               <div className="flex items-center justify-between mb-6">
                 <div>

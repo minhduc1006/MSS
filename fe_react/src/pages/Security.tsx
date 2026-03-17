@@ -1,21 +1,10 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import ActionGrid from "../components/ActionGrid";
-import { useToast } from "../components/Toast";
-import { Shield, AlertTriangle, Construction, CheckCircle, Search, Map, List, UserPlus, MoreHorizontal } from "lucide-react";
+import { Shield, AlertTriangle, Construction, CheckCircle, Search, Map, List, UserPlus } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function Security() {
-  const { showToast } = useToast();
   const [view, setView] = useState<"map" | "list">("list");
-
-  const handleAction = (action: string) => {
-    console.log(`Security Action: ${action}`);
-  };
-
-  const handleIncidentAction = (title: string, action: string) => {
-    showToast(`${action} performed on incident: ${title}`, "success");
-  };
 
   const incidents = [
     { id: 1, title: "Unauthorized Access", zone: "Zone B • West Lobby", time: "2m ago", status: "Open", desc: "A person was seen entering the restricted service elevator area without a keycard.", icon: AlertTriangle, color: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
@@ -48,13 +37,7 @@ export default function Security() {
         </div>
       </div>
 
-      <div className="sticky top-[104px] z-10 bg-white dark:bg-[#101922] px-4 py-4 space-y-3 shadow-sm">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
-          <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">Security Operations</h3>
-          </div>
-          <ActionGrid onAction={handleAction} extraActions={true} />
-        </div>
+      <div className="sticky top-[81px] z-10 space-y-3 bg-white px-4 py-4 shadow-sm dark:bg-[#101922] lg:top-0 lg:px-6">
         <div className="flex w-full items-stretch rounded-xl h-12 bg-slate-100 dark:bg-slate-800 focus-within:ring-2 focus-within:ring-[#137fec]/50 transition-all">
           <div className="flex items-center justify-center pl-4 text-slate-500">
             <Search className="w-5 h-5" />
@@ -70,7 +53,7 @@ export default function Security() {
         </div>
       </div>
 
-      <main className="flex-1 p-4 space-y-4">
+      <main className="flex-1 space-y-4 p-4 lg:p-6">
         {view === "list" ? (
           <>
             <div className="relative w-full h-40 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">
@@ -108,20 +91,9 @@ export default function Security() {
                   </span>
                 </div>
                 <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">{incident.desc}</p>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleIncidentAction(incident.title, "Assign Staff")}
-                    className="flex-1 bg-[#137fec] text-white py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    Assign Staff
-                  </button>
-                  <button 
-                    onClick={() => handleIncidentAction(incident.title, "More Options")}
-                    className="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500"
-                  >
-                    <MoreHorizontal className="w-5 h-5" />
-                  </button>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+                  <UserPlus className="h-4 w-4" />
+                  Incident snapshot
                 </div>
               </motion.div>
             ))}
