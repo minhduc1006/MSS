@@ -22,12 +22,18 @@ class AppApiService {
 
   static final AppApiService instance = AppApiService._();
 
-  static const _apiHostOverride = String.fromEnvironment('API_HOST', defaultValue: '');
-  static const _authApiOverride = String.fromEnvironment('AUTH_API_URL', defaultValue: '');
-  static const _billingApiOverride = String.fromEnvironment('BILLING_API_URL', defaultValue: '');
-  static const _facilityApiOverride = String.fromEnvironment('FACILITY_API_URL', defaultValue: '');
-  static const _securityApiOverride = String.fromEnvironment('SECURITY_API_URL', defaultValue: '');
-  static const _operationsApiOverride = String.fromEnvironment('OPERATIONS_API_URL', defaultValue: '');
+  static const _apiHostOverride =
+      String.fromEnvironment('API_HOST', defaultValue: '');
+  static const _authApiOverride =
+      String.fromEnvironment('AUTH_API_URL', defaultValue: '');
+  static const _billingApiOverride =
+      String.fromEnvironment('BILLING_API_URL', defaultValue: '');
+  static const _facilityApiOverride =
+      String.fromEnvironment('FACILITY_API_URL', defaultValue: '');
+  static const _securityApiOverride =
+      String.fromEnvironment('SECURITY_API_URL', defaultValue: '');
+  static const _operationsApiOverride =
+      String.fromEnvironment('OPERATIONS_API_URL', defaultValue: '');
 
   static Uri get authBaseUri => _serviceUri(_authApiOverride, 8081);
   static Uri get billingBaseUri => _serviceUri(_billingApiOverride, 8082);
@@ -117,12 +123,14 @@ class AppApiService {
   }
 
   Future<SessionUser> fetchUserByEmail(String email) async {
-    final json = await _getJson(authBaseUri, '/api/users/by-email?email=${Uri.encodeQueryComponent(email)}');
+    final json = await _getJson(authBaseUri,
+        '/api/users/by-email?email=${Uri.encodeQueryComponent(email)}');
     return _sessionUserFromJson(json);
   }
 
   Future<List<ActivityItem>> fetchActivities() async {
-    final json = await _getJson(operationsBaseUri, '/api/operations/activity') as List<dynamic>;
+    final json = await _getJson(operationsBaseUri, '/api/operations/activity')
+        as List<dynamic>;
     return json
         .map(
           (item) => ActivityItem(
@@ -137,7 +145,8 @@ class AppApiService {
   }
 
   Future<List<ResidentItem>> fetchResidents() async {
-    final json = await _getJson(authBaseUri, '/api/users/residents') as List<dynamic>;
+    final json =
+        await _getJson(authBaseUri, '/api/users/residents') as List<dynamic>;
     return json
         .map(
           (item) => ResidentItem(
@@ -183,11 +192,13 @@ class AppApiService {
   }
 
   Future<void> activateResident(int residentId) async {
-    await _postJson(authBaseUri, '/api/users/residents/$residentId/activate', const {});
+    await _postJson(
+        authBaseUri, '/api/users/residents/$residentId/activate', const {});
   }
 
   Future<List<StaffItem>> fetchStaff() async {
-    final json = await _getJson(authBaseUri, '/api/users/staff') as List<dynamic>;
+    final json =
+        await _getJson(authBaseUri, '/api/users/staff') as List<dynamic>;
     return json
         .map(
           (item) => StaffItem(
@@ -204,7 +215,8 @@ class AppApiService {
   }
 
   Future<List<AdminContactItem>> fetchAdminContacts() async {
-    final json = await _getJson(authBaseUri, '/api/users/admins') as List<dynamic>;
+    final json =
+        await _getJson(authBaseUri, '/api/users/admins') as List<dynamic>;
     return json
         .map(
           (item) => AdminContactItem(
@@ -268,13 +280,19 @@ class AppApiService {
   }
 
   Future<void> activateStaff(int staffId) async {
-    await _postJson(authBaseUri, '/api/users/staff/$staffId/activate', const {});
+    await _postJson(
+        authBaseUri, '/api/users/staff/$staffId/activate', const {});
   }
 
-  Future<BillingOverviewData> fetchBillingOverview({String status = 'All'}) async {
-    final json = await _getJson(billingBaseUri, '/api/billing/overview?status=$status') as Map<String, dynamic>;
+  Future<BillingOverviewData> fetchBillingOverview(
+      {String status = 'All'}) async {
+    final json =
+        await _getJson(billingBaseUri, '/api/billing/overview?status=$status')
+            as Map<String, dynamic>;
     final summary = json['summary'] as Map<String, dynamic>? ?? const {};
-    final invoices = (json['invoices'] as List<dynamic>? ?? const []).map(_invoiceFromJson).toList();
+    final invoices = (json['invoices'] as List<dynamic>? ?? const [])
+        .map(_invoiceFromJson)
+        .toList();
     return BillingOverviewData(
       totalInvoiced: _toDouble(summary['totalInvoiced']),
       totalOutstanding: _toDouble(summary['totalOutstanding']),
@@ -284,13 +302,17 @@ class AppApiService {
   }
 
   Future<List<BillItem>> fetchResidentBills(int residentId) async {
-    final json = await _getJson(billingBaseUri, '/api/billing/resident/$residentId') as List<dynamic>;
+    final json =
+        await _getJson(billingBaseUri, '/api/billing/resident/$residentId')
+            as List<dynamic>;
     return json.map(_billFromJson).toList();
   }
 
   Future<Uri> createBillCheckout(int invoiceId) async {
-    final returnUrl = billingBaseUri.resolve('/api/billing/payos/return').toString();
-    final cancelUrl = billingBaseUri.resolve('/api/billing/payos/cancel').toString();
+    final returnUrl =
+        billingBaseUri.resolve('/api/billing/payos/return').toString();
+    final cancelUrl =
+        billingBaseUri.resolve('/api/billing/payos/cancel').toString();
     final json = await _postJson(
       billingBaseUri,
       '/api/billing/$invoiceId/checkout',
@@ -301,13 +323,15 @@ class AppApiService {
     ) as Map<String, dynamic>;
     final checkoutUrl = json['checkoutUrl'] as String?;
     if (checkoutUrl == null || checkoutUrl.isEmpty) {
-      throw Exception('Billing checkout URL is missing from the PayOS response.');
+      throw Exception(
+          'Billing checkout URL is missing from the PayOS response.');
     }
     return Uri.parse(checkoutUrl);
   }
 
   Future<BillItem> payBill(int invoiceId) async {
-    final json = await _postJson(billingBaseUri, '/api/billing/$invoiceId/pay', const {});
+    final json = await _postJson(
+        billingBaseUri, '/api/billing/$invoiceId/pay', const {});
     return _billFromJson(json);
   }
 
@@ -394,18 +418,21 @@ class AppApiService {
   }
 
   Future<ApartmentStatsData> fetchApartmentStats() async {
-    final json = await _getJson(billingBaseUri, '/api/apartments') as Map<String, dynamic>;
-    final units = (json['units'] as List<dynamic>? ?? const []).map(
-      (item) => ApartmentUnitItem(
-        id: item['id'] as int?,
-        unitNumber: item['unitNumber'] as String? ?? '',
-        tower: item['tower'] as String? ?? '',
-        unitType: item['unitType'] as String? ?? '',
-        occupancyStatus: item['occupancyStatus'] as String? ?? '',
-        residentName: item['residentName'] as String?,
-        balance: _toDouble(item['balance']),
-      ),
-    ).toList();
+    final json = await _getJson(billingBaseUri, '/api/apartments')
+        as Map<String, dynamic>;
+    final units = (json['units'] as List<dynamic>? ?? const [])
+        .map(
+          (item) => ApartmentUnitItem(
+            id: item['id'] as int?,
+            unitNumber: item['unitNumber'] as String? ?? '',
+            tower: item['tower'] as String? ?? '',
+            unitType: item['unitType'] as String? ?? '',
+            occupancyStatus: item['occupancyStatus'] as String? ?? '',
+            residentName: item['residentName'] as String?,
+            balance: _toDouble(item['balance']),
+          ),
+        )
+        .toList();
     return ApartmentStatsData(
       totalUnits: (json['totalUnits'] as num?)?.toInt() ?? units.length,
       occupiedUnits: (json['occupiedUnits'] as num?)?.toInt() ?? 0,
@@ -481,9 +508,11 @@ class AppApiService {
   }
 
   Future<List<MaintenanceFacility>> fetchFacilities() async {
-    final json = await _getJson(facilityBaseUri, '/api/facilities') as Map<String, dynamic>;
-    final facilities =
-        (json['facilities'] as List<dynamic>? ?? const []).map(_facilityFromJson).toList();
+    final json = await _getJson(facilityBaseUri, '/api/facilities')
+        as Map<String, dynamic>;
+    final facilities = (json['facilities'] as List<dynamic>? ?? const [])
+        .map(_facilityFromJson)
+        .toList();
     return facilities;
   }
 
@@ -596,14 +625,19 @@ class AppApiService {
   }
 
   Future<List<BookingItem>> fetchBookings(int residentId) async {
-    final json = await _getJson(facilityBaseUri, '/api/bookings/resident/$residentId') as List<dynamic>;
+    final json =
+        await _getJson(facilityBaseUri, '/api/bookings/resident/$residentId')
+            as List<dynamic>;
     return json
         .map(
           (item) => BookingItem(
             id: item['id'] as int?,
             facilityId: item['facilityId'] as int?,
-            title: item['title'] as String? ?? item['facilityName'] as String? ?? '',
-            time: '${_formatDate(item['bookingDate'])} - ${item['timeSlot'] ?? ''}',
+            title: item['title'] as String? ??
+                item['facilityName'] as String? ??
+                '',
+            time:
+                '${_formatDate(item['bookingDate'])} - ${item['timeSlot'] ?? ''}',
             location: item['facilityName'] as String? ?? '',
             status: item['status'] as String? ?? 'Confirmed',
             slotCode: item['slotCode'] as String?,
@@ -647,7 +681,8 @@ class AppApiService {
   }
 
   Future<List<AnnouncementItem>> fetchAnnouncements() async {
-    final json = await _getJson(facilityBaseUri, '/api/announcements') as List<dynamic>;
+    final json =
+        await _getJson(facilityBaseUri, '/api/announcements') as List<dynamic>;
     return json
         .map(
           (item) => AnnouncementItem(
@@ -662,9 +697,14 @@ class AppApiService {
   }
 
   Future<SecurityOverviewData> fetchSecurityOverview() async {
-    final json = await _getJson(securityBaseUri, '/api/security/overview') as Map<String, dynamic>;
-    final incidents = (json['incidents'] as List<dynamic>? ?? const []).map(_incidentFromJson).toList();
-    final logs = (json['recentLogs'] as List<dynamic>? ?? const []).map(_securityLogFromJson).toList();
+    final json = await _getJson(securityBaseUri, '/api/security/overview')
+        as Map<String, dynamic>;
+    final incidents = (json['incidents'] as List<dynamic>? ?? const [])
+        .map(_incidentFromJson)
+        .toList();
+    final logs = (json['recentLogs'] as List<dynamic>? ?? const [])
+        .map(_securityLogFromJson)
+        .toList();
     return SecurityOverviewData(incidents: incidents, recentLogs: logs);
   }
 
@@ -754,13 +794,18 @@ class AppApiService {
     required int userId,
     required String audience,
   }) async {
-    final json = await _getJson(securityBaseUri, '/api/security/history/$audience/$userId') as Map<String, dynamic>;
-    final logs = (json['logs'] as List<dynamic>? ?? const []).map(_securityLogFromJson).toList();
+    final json = await _getJson(
+            securityBaseUri, '/api/security/history/$audience/$userId')
+        as Map<String, dynamic>;
+    final logs = (json['logs'] as List<dynamic>? ?? const [])
+        .map(_securityLogFromJson)
+        .toList();
     return logs;
   }
 
   Future<AccountSummary> fetchAccountSummary(int userId) async {
-    final json = await _getJson(authBaseUri, '/api/users/$userId/account') as Map<String, dynamic>;
+    final json = await _getJson(authBaseUri, '/api/users/$userId/account')
+        as Map<String, dynamic>;
     final userJson = json['user'] as Map<String, dynamic>? ?? const {};
     final statsJson = json['stats'] as Map<String, dynamic>? ?? const {};
     return AccountSummary(
@@ -774,20 +819,24 @@ class AppApiService {
   }
 
   Future<TaskBundleData> fetchStaffTasks(int staffId) async {
-    final json = await _getJson(operationsBaseUri, '/api/operations/staff/$staffId/tasks') as Map<String, dynamic>;
-    final tasks = (json['tasks'] as List<dynamic>? ?? const []).map(
-      (item) => TaskItem(
-        id: item['id'] as int?,
-        sourceId: item['sourceId'] as int?,
-        sourceType: item['sourceType'] as String?,
-        assignedStaffName: item['assignedStaffName'] as String?,
-        title: item['title'] as String? ?? '',
-        zone: item['zone'] as String? ?? '',
-        priority: item['priority'] as String? ?? '',
-        status: item['status'] as String? ?? '',
-        category: item['category'] as String?,
-      ),
-    ).toList();
+    final json = await _getJson(
+            operationsBaseUri, '/api/operations/staff/$staffId/tasks')
+        as Map<String, dynamic>;
+    final tasks = (json['tasks'] as List<dynamic>? ?? const [])
+        .map(
+          (item) => TaskItem(
+            id: item['id'] as int?,
+            sourceId: item['sourceId'] as int?,
+            sourceType: item['sourceType'] as String?,
+            assignedStaffName: item['assignedStaffName'] as String?,
+            title: item['title'] as String? ?? '',
+            zone: item['zone'] as String? ?? '',
+            priority: item['priority'] as String? ?? '',
+            status: item['status'] as String? ?? '',
+            category: item['category'] as String?,
+          ),
+        )
+        .toList();
     return TaskBundleData(
       totalTasks: (json['totalTasks'] as num?)?.toInt() ?? tasks.length,
       completedTasks: (json['completedTasks'] as num?)?.toInt() ?? 0,
@@ -833,11 +882,14 @@ class AppApiService {
   }
 
   Future<List<CustomServiceRequestItem>> fetchCustomServiceRequests() async {
-    final json = await _getJson(operationsBaseUri, '/api/operations/custom-service-requests') as List<dynamic>;
+    final json = await _getJson(
+            operationsBaseUri, '/api/operations/custom-service-requests')
+        as List<dynamic>;
     return json.map(_customServiceRequestFromJson).toList();
   }
 
-  Future<List<CustomServiceRequestItem>> fetchResidentCustomServiceRequests(int residentId) async {
+  Future<List<CustomServiceRequestItem>> fetchResidentCustomServiceRequests(
+      int residentId) async {
     final json = await _getJson(
       operationsBaseUri,
       '/api/operations/custom-service-requests/resident/$residentId',
@@ -845,7 +897,8 @@ class AppApiService {
     return json.map(_customServiceRequestFromJson).toList();
   }
 
-  Future<List<CustomServiceRequestItem>> fetchStaffCustomServiceRequests(int staffId) async {
+  Future<List<CustomServiceRequestItem>> fetchStaffCustomServiceRequests(
+      int staffId) async {
     final json = await _getJson(
       operationsBaseUri,
       '/api/operations/custom-service-requests/staff/$staffId',
@@ -929,11 +982,14 @@ class AppApiService {
   Future<dynamic> _getJson(Uri base, String path) async {
     return _sendWithFallback(
       base,
-      (uri) => _client.get(uri.resolve(path), headers: {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 8)),
+      (uri) => _client.get(uri.resolve(path), headers: {
+        'Content-Type': 'application/json'
+      }).timeout(const Duration(seconds: 8)),
     );
   }
 
-  Future<dynamic> _postJson(Uri base, String path, Map<String, dynamic> body) async {
+  Future<dynamic> _postJson(
+      Uri base, String path, Map<String, dynamic> body) async {
     return _sendWithFallback(
       base,
       (uri) => _client
@@ -946,7 +1002,8 @@ class AppApiService {
     );
   }
 
-  Future<dynamic> _putJson(Uri base, String path, Map<String, dynamic> body) async {
+  Future<dynamic> _putJson(
+      Uri base, String path, Map<String, dynamic> body) async {
     return _sendWithFallback(
       base,
       (uri) => _client
@@ -962,24 +1019,20 @@ class AppApiService {
   Future<void> _delete(Uri base, String path) async {
     await _sendWithFallback(
       base,
-      (uri) => _client
-          .delete(
-            uri.resolve(path),
-            headers: {'Content-Type': 'application/json'},
-          )
-          .timeout(const Duration(seconds: 8)),
+      (uri) => _client.delete(
+        uri.resolve(path),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 8)),
     );
   }
 
   Future<dynamic> _deleteWithResponse(Uri base, String path) async {
     return _sendWithFallback(
       base,
-      (uri) => _client
-          .delete(
-            uri.resolve(path),
-            headers: {'Content-Type': 'application/json'},
-          )
-          .timeout(const Duration(seconds: 8)),
+      (uri) => _client.delete(
+        uri.resolve(path),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 8)),
     );
   }
 
@@ -1018,9 +1071,29 @@ class AppApiService {
       try {
         final parsed = jsonDecode(responseBody);
         if (parsed is Map<String, dynamic>) {
-          message = (parsed['message'] as String?) ??
-              (parsed['error'] as String?) ??
-              responseBody;
+          final parsedMessage = (parsed['message'] as String?)?.trim();
+          final parsedError = (parsed['error'] as String?)?.trim();
+          final parsedPath = (parsed['path'] as String?)?.trim();
+          final parsedStatus =
+              parsed['status'] is int ? parsed['status'] as int : null;
+
+          message = parsedMessage?.isNotEmpty == true
+              ? parsedMessage!
+              : (parsedError?.isNotEmpty == true ? parsedError! : responseBody);
+
+          // Spring Boot default error payloads include `status` + `path`, which is
+          // very helpful when debugging "Not Found" issues from the mobile app.
+          if (parsedStatus != null ||
+              (parsedPath != null && parsedPath.isNotEmpty)) {
+            final suffix = <String>[];
+            if (parsedStatus != null) {
+              suffix.add('($parsedStatus)');
+            }
+            if (parsedPath != null && parsedPath.isNotEmpty) {
+              suffix.add(parsedPath);
+            }
+            message = '$message ${suffix.join(' ')}'.trim();
+          }
         } else {
           message = responseBody;
         }
@@ -1045,7 +1118,9 @@ class AppApiService {
   static List<Uri> _candidateBases(Uri primaryBase) {
     final candidates = <Uri>[primaryBase];
     final port = primaryBase.hasPort ? primaryBase.port : null;
-    if (port == null || _apiHostOverride.isNotEmpty || _hasExplicitServiceOverride(primaryBase)) {
+    if (port == null ||
+        _apiHostOverride.isNotEmpty ||
+        _hasExplicitServiceOverride(primaryBase)) {
       return candidates;
     }
 
@@ -1245,9 +1320,10 @@ class AppApiService {
       slotCodes: (json['slotCodes'] as List<dynamic>? ?? const [])
           .map((slot) => slot.toString())
           .toList(),
-      occupiedSlotCodes: (json['occupiedSlotCodes'] as List<dynamic>? ?? const [])
-          .map((slot) => slot.toString())
-          .toList(),
+      occupiedSlotCodes:
+          (json['occupiedSlotCodes'] as List<dynamic>? ?? const [])
+              .map((slot) => slot.toString())
+              .toList(),
     );
   }
 
@@ -1291,7 +1367,8 @@ class AppApiService {
       status: json['status'] as String? ?? '',
       assignedStaffId: (json['assignedStaffId'] as num?)?.toInt(),
       assignedStaffName: json['assignedStaffName'] as String?,
-      quotedPrice: json['quotedPrice'] == null ? null : _toDouble(json['quotedPrice']),
+      quotedPrice:
+          json['quotedPrice'] == null ? null : _toDouble(json['quotedPrice']),
       quoteNote: json['quoteNote'] as String?,
       residentDecisionNote: json['residentDecisionNote'] as String?,
       createdAt: _formatDateTime(json['createdAt']),
