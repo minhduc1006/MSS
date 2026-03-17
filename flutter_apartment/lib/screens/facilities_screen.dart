@@ -20,13 +20,12 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
     'All',
     'Operational',
     'Maintenance',
-    'Pending Approval',
     'Assigned',
-    'Rejected',
     'Deactivated'
   ];
 
   late Future<List<MaintenanceFacility>> _facilitiesFuture;
+  late Future<List<CustomServiceRequestItem>> _customRequestsFuture;
   final _draftFacilities = <MaintenanceFacility>[];
   final _overrides = <String, MaintenanceFacility>{};
   final _hidden = <String>{};
@@ -45,6 +44,7 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
   void initState() {
     super.initState();
     _facilitiesFuture = AppApiService.instance.fetchFacilities();
+    _customRequestsFuture = AppApiService.instance.fetchCustomServiceRequests();
   }
 
   @override
@@ -57,6 +57,8 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
   void _reload() {
     setState(() {
       _facilitiesFuture = AppApiService.instance.fetchFacilities();
+      _customRequestsFuture =
+          AppApiService.instance.fetchCustomServiceRequests();
     });
   }
 
@@ -64,8 +66,7 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
   Widget build(BuildContext context) {
     return AppShell(
       title: 'Facility & Service Management',
-      subtitle:
-          'Manage facilities, services, schedules, approvals, and monitoring',
+      subtitle: 'Manage facilities and resident service requests',
       role: UserRole.admin,
       currentIndex: 3,
       leadingIcon: Icons.arrow_back_ios_new_rounded,
@@ -91,11 +92,10 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
           final facilities =
               _mergedFacilities(snapshot.data ?? const <MaintenanceFacility>[]);
           final filtered = _filteredFacilities(facilities);
-          final selected = _selectedFacility(facilities);
           final maintenanceCount =
               facilities.where((item) => item.status == 'Maintenance').length;
-          final pendingCount = facilities
-              .where((item) => item.status == 'Pending Approval')
+          final assignedCount = facilities
+              .where((item) => item.status == 'Assigned')
               .length;
 
           return ListView(
@@ -120,7 +120,7 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                   MetricCard(
                       label: 'Attention',
                       value: '$maintenanceCount',
-                      note: '$pendingCount pending',
+                      note: '$assignedCount assigned',
                       noteColor: const Color(0xFFF59E0B),
                       icon: Icons.build_circle_rounded,
                       iconColor: const Color(0xFFF59E0B)),
@@ -169,35 +169,162 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                       label: 'Export',
                       icon: Icons.download_rounded,
                       onTap: () => _exportFacilities(facilities)),
-                  ActionTile(
-                      label: 'Import',
-                      icon: Icons.upload_rounded,
-                      onTap: _importFacilities),
-                  ActionTile(
-                      label: 'Track',
-                      icon: Icons.track_changes_rounded,
-                      onTap: () => _trackFacilities(facilities)),
-                  ActionTile(
-                      label: 'Monitor',
-                      icon: Icons.monitor_heart_rounded,
-                      onTap: () => _monitorFacilities(facilities)),
-                  ActionTile(
-                      label: 'Generate',
-                      icon: Icons.auto_awesome_rounded,
-                      onTap: () => _generateFacilities(facilities)),
-                  ActionTile(
-                      label: 'Manage',
-                      icon: Icons.dashboard_customize_rounded,
-                      onTap: () => _manageFacilities(facilities, selected)),
-                  ActionTile(
-                      label: 'Configure',
-                      icon: Icons.settings_rounded,
-                      onTap: _configureFacilities),
-                  ActionTile(
-                      label: 'Validate',
-                      icon: Icons.fact_check_rounded,
-                      onTap: () => _validateFacilities(facilities)),
                 ],
+              ),
+              const SizedBox(height: 16),
+              const SectionTitle('Custom Service Requests'),
+              const SizedBox(height: 12),
+              FutureBuilder<List<CustomServiceRequestItem>>(
+                future: _customRequestsFuture,
+                builder: (context, requestSnapshot) {
+                  final requests =
+                      requestSnapshot.data ?? const <CustomServiceRequestItem>[];
+                  if (requestSnapshot.connectionState ==
+                          ConnectionState.waiting &&
+                      requests.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  if (requests.isEmpty) {
+                    return const InfoCard(
+                      child: Text(
+                        'No resident custom service requests yet.',
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: requests
+                        .map(
+                          (request) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: InfoCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              request.title,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelLarge
+                                                  ?.copyWith(
+                                                    color:
+                                                        AppTheme.textPrimary,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '${request.residentName} • ${request.unitNumber}',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              request.createdAt,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      statusChip(request.status),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    request.description,
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Zone: ${request.zone}',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  if ((request.preferredSchedule ?? '')
+                                      .isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Preferred schedule: ${request.preferredSchedule}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
+                                    ),
+                                  ],
+                                  if (request.assignedStaffName != null) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Assigned staff: ${request.assignedStaffName}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
+                                    ),
+                                  ],
+                                  if (request.quotedPrice != null) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Quoted price: ${formatMoney(request.quotedPrice!)}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelMedium
+                                          ?.copyWith(
+                                            color: const Color(0xFFF59E0B),
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ],
+                                  if ((request.quoteNote ?? '').isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Staff note: ${request.quoteNote}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
+                                    ),
+                                  ],
+                                  const SizedBox(height: 12),
+                                  ResponsiveButtonBar(
+                                    children: [
+                                      OutlinedButton(
+                                        onPressed: () =>
+                                            _viewCustomServiceRequest(request),
+                                        child: const Text('View'),
+                                      ),
+                                      FilledButton.tonal(
+                                        onPressed: request.id == null ||
+                                                (request.status !=
+                                                        'Pending Assignment' &&
+                                                    request.status !=
+                                                        'Reassign Required')
+                                            ? null
+                                            : () => _assignCustomServiceRequest(
+                                                  request,
+                                                ),
+                                        child: const Text('Assign Staff'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               if (snapshot.connectionState == ConnectionState.waiting &&
@@ -220,11 +347,7 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                       return Column(
                         children: [
                           for (final facility in filtered) ...[
-                            _facilityCard(
-                              context,
-                              facility,
-                              compactActions: true,
-                            ),
+                            _facilityCard(context, facility),
                             if (facility != filtered.last)
                               const SizedBox(height: 14),
                           ],
@@ -255,14 +378,10 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
 
   Widget _facilityCard(
     BuildContext context,
-    MaintenanceFacility facility, {
-    bool compactActions = false,
-  }) {
+    MaintenanceFacility facility,
+  ) {
     final key = _facilityKey(facility);
     final active = key == _selectedFacilityKey;
-    final scheduleCount =
-        _schedules.where((item) => item.facilityKey == key).length;
-    final notificationCount = _notifications[key] ?? 0;
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () => setState(() => _selectedFacilityKey = key),
@@ -310,30 +429,7 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: [
-                      _pill(
-                          context,
-                          Icons.event_note_rounded,
-                          scheduleCount == 0
-                              ? 'No schedules'
-                              : '$scheduleCount schedules'),
-                      _pill(
-                          context,
-                          Icons.notifications_rounded,
-                          notificationCount == 0
-                              ? 'No alerts'
-                              : '$notificationCount alerts'),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _facilityActionWidgets(
-                      context,
-                      facility,
-                      compactActions: compactActions,
-                    ),
+                    children: _facilityActionWidgets(context, facility),
                   ),
                 ],
               ),
@@ -398,9 +494,8 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
 
   List<Widget> _facilityActionWidgets(
     BuildContext context,
-    MaintenanceFacility facility, {
-    required bool compactActions,
-  }) {
+    MaintenanceFacility facility,
+  ) {
     final widgets = <Widget>[
       _facilityAction(
         context,
@@ -438,107 +533,15 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
       ),
     );
 
-    if (compactActions) {
-      widgets.add(
-        _facilityAction(
-          context,
-          icon: Icons.more_horiz_rounded,
-          label: 'Manage',
-          onTap: () => _showFacilityActionSheet(facility),
-        ),
-      );
-      return widgets;
-    }
-
     widgets.addAll([
-      _facilityAction(
-        context,
-        icon: Icons.check_circle_rounded,
-        label: 'Approve',
-        onTap: () => _approveFacility(facility),
-      ),
-      _facilityAction(
-        context,
-        icon: Icons.cancel_rounded,
-        label: 'Reject',
-        onTap: () => _rejectFacility(facility),
-      ),
       _facilityAction(
         context,
         icon: Icons.assignment_ind_rounded,
         label: 'Assign',
         onTap: () => _assignFacility(facility),
       ),
-      _facilityAction(
-        context,
-        icon: Icons.event_available_rounded,
-        label: 'Schedule',
-        onTap: () => _scheduleFacility(facility),
-      ),
-      _facilityAction(
-        context,
-        icon: Icons.notifications_active_rounded,
-        label: 'Notify',
-        onTap: () => _notifyFacility(facility),
-      ),
     ]);
     return widgets;
-  }
-
-  Future<void> _showFacilityActionSheet(MaintenanceFacility facility) async {
-    await showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.check_circle_rounded),
-                title: Text(context.tr('Approve')),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _approveFacility(facility);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cancel_rounded),
-                title: Text(context.tr('Reject')),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _rejectFacility(facility);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.assignment_ind_rounded),
-                title: Text(context.tr('Assign')),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _assignFacility(facility);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.event_available_rounded),
-                title: Text(context.tr('Schedule')),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _scheduleFacility(facility);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.notifications_active_rounded),
-                title: Text(context.tr('Notify')),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _notifyFacility(facility);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   List<MaintenanceFacility> _mergedFacilities(List<MaintenanceFacility> base) {
@@ -618,6 +621,14 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
       logs: logs ?? facility.logs,
       area: area ?? facility.area,
       icon: facility.icon,
+      description: facility.description,
+      serviceType: facility.serviceType,
+      bookingMode: facility.bookingMode,
+      oneTimePrice: facility.oneTimePrice,
+      monthlyPrice: facility.monthlyPrice,
+      yearlyPrice: facility.yearlyPrice,
+      slotCodes: facility.slotCodes,
+      occupiedSlotCodes: facility.occupiedSlotCodes,
     );
   }
 
@@ -630,7 +641,6 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
     final nameController = TextEditingController();
     final areaController = TextEditingController(text: 'Level 1');
     final healthController = TextEditingController(text: '92');
-    bool requireApproval = !_autoApprove;
     await showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
@@ -653,13 +663,6 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                     controller: healthController,
                     decoration:
                         const InputDecoration(labelText: 'Health Score')),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Require approval'),
-                  value: requireApproval,
-                  onChanged: (value) =>
-                      setModalState(() => requireApproval = value),
-                ),
               ],
             ),
           ),
@@ -668,21 +671,28 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                 onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Cancel')),
             FilledButton(
-              onPressed: () {
-                final facility = MaintenanceFacility(
-                  name: nameController.text.trim(),
-                  status: requireApproval ? 'Pending Approval' : 'Operational',
-                  lastCheck: 'Just now',
-                  health: int.tryParse(healthController.text.trim()) ?? 0,
-                  logs: const ['Created from admin console'],
-                  area: areaController.text.trim(),
-                );
-                setState(() {
-                  _draftFacilities.add(facility);
-                  _selectedFacilityKey = _facilityKey(facility);
-                });
-                Navigator.pop(dialogContext);
-                showAppSnack(context, 'Facility & service management created');
+              onPressed: () async {
+                try {
+                  final created = await AppApiService.instance.createFacility(
+                    name: nameController.text.trim(),
+                    area: areaController.text.trim(),
+                    status: 'Operational',
+                    health: int.tryParse(healthController.text.trim()) ?? 0,
+                    icon: 'build',
+                    description: 'Created from admin console',
+                    serviceType: 'operations',
+                    bookingMode: 'none',
+                  );
+                  if (!dialogContext.mounted || !mounted) return;
+                  setState(() => _selectedFacilityKey = _facilityKey(created));
+                  Navigator.pop(dialogContext);
+                  _reload();
+                  showAppSnack(context, 'Facility & service management created');
+                } catch (error) {
+                  if (!dialogContext.mounted || !mounted) return;
+                  showAppSnack(
+                      context, error.toString().replaceFirst('Exception: ', ''));
+                }
               },
               child: const Text('Create'),
             ),
@@ -742,19 +752,50 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                 onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Cancel')),
             FilledButton(
-              onPressed: () {
-                setState(() {
-                  _overrides[_facilityKey(current)] = _copyFacility(
-                    current,
+              onPressed: () async {
+                if (current.id == null) {
+                  setState(() {
+                    _overrides[_facilityKey(current)] = _copyFacility(
+                      current,
+                      name: nameController.text.trim(),
+                      area: areaController.text.trim(),
+                      health: int.tryParse(healthController.text.trim()) ??
+                          current.health,
+                      status: status,
+                    );
+                  });
+                  Navigator.pop(dialogContext);
+                  showAppSnack(context, 'Facility & service management updated');
+                  return;
+                }
+                try {
+                  await AppApiService.instance.updateFacility(
+                    facilityId: current.id!,
                     name: nameController.text.trim(),
                     area: areaController.text.trim(),
+                    status: status,
                     health: int.tryParse(healthController.text.trim()) ??
                         current.health,
-                    status: status,
+                    icon: current.icon,
+                    description: current.description,
+                    serviceType: current.serviceType,
+                    bookingMode: current.bookingMode,
+                    oneTimePrice: current.oneTimePrice,
+                    monthlyPrice: current.monthlyPrice,
+                    yearlyPrice: current.yearlyPrice,
+                    slotLayout: current.slotCodes.isEmpty
+                        ? null
+                        : current.slotCodes.join(','),
                   );
-                });
-                Navigator.pop(dialogContext);
-                showAppSnack(context, 'Facility & service management updated');
+                  if (!dialogContext.mounted || !mounted) return;
+                  Navigator.pop(dialogContext);
+                  _reload();
+                  showAppSnack(context, 'Facility & service management updated');
+                } catch (error) {
+                  if (!dialogContext.mounted || !mounted) return;
+                  showAppSnack(
+                      context, error.toString().replaceFirst('Exception: ', ''));
+                }
               },
               child: const Text('Save'),
             ),
@@ -783,26 +824,56 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
       ),
     );
     if (shouldDelete != true) return;
-    if (!mounted) return;
-    setState(() {
-      final key = _facilityKey(current);
-      _overrides[key] = _copyFacility(current, status: 'Deactivated');
-      if (_selectedFacilityKey == key) {
-        _selectedFacilityKey = null;
+    if (current.id == null) {
+      if (!mounted) return;
+      setState(() {
+        final key = _facilityKey(current);
+        _overrides[key] = _copyFacility(current, status: 'Deactivated');
+        if (_selectedFacilityKey == key) {
+          _selectedFacilityKey = null;
+        }
+      });
+      showAppSnack(context, 'Facility & service management deactivated');
+      return;
+    }
+    try {
+      await AppApiService.instance.deactivateFacility(current.id!);
+      if (!mounted) return;
+      if (_selectedFacilityKey == _facilityKey(current)) {
+        setState(() => _selectedFacilityKey = null);
       }
-    });
-    showAppSnack(context, 'Facility & service management deactivated');
+      _reload();
+      showAppSnack(context, 'Facility & service management deactivated');
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
-  void _activateFacility(MaintenanceFacility? facility) {
+  Future<void> _activateFacility(MaintenanceFacility? facility) async {
     final current =
         _requireSelected(facility, 'Select a facility to activate.');
     if (current == null) return;
-    setState(() {
-      _overrides[_facilityKey(current)] =
-          _copyFacility(current, status: 'Operational');
-    });
-    showAppSnack(context, 'Facility & service management activated');
+    if (current.id == null) {
+      setState(() {
+        _overrides[_facilityKey(current)] =
+            _copyFacility(current, status: 'Operational');
+      });
+      showAppSnack(context, 'Facility & service management activated');
+      return;
+    }
+    try {
+      await AppApiService.instance.updateFacilityStatus(
+        facilityId: current.id!,
+        status: 'Operational',
+      );
+      if (!mounted) return;
+      _reload();
+      showAppSnack(context, 'Facility & service management activated');
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
   Future<void> _viewFacility(MaintenanceFacility? facility) async {
@@ -834,57 +905,203 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
     );
   }
 
-  void _approveFacility(MaintenanceFacility? facility) {
+  Future<void> _approveFacility(MaintenanceFacility? facility) async {
     final current = _requireSelected(facility, 'Select a facility to approve.');
     if (current == null) return;
-    setState(() {
-      _overrides[_facilityKey(current)] =
-          _copyFacility(current, status: 'Operational');
-    });
-    showAppSnack(context, 'Facility & service management approved');
+    if (current.id == null) {
+      setState(() {
+        _overrides[_facilityKey(current)] =
+            _copyFacility(current, status: 'Operational');
+      });
+      showAppSnack(context, 'Facility & service management approved');
+      return;
+    }
+    try {
+      await AppApiService.instance.updateFacilityStatus(
+        facilityId: current.id!,
+        status: 'Operational',
+      );
+      if (!mounted) return;
+      _reload();
+      showAppSnack(context, 'Facility & service management approved');
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
-  void _rejectFacility(MaintenanceFacility? facility) {
+  Future<void> _rejectFacility(MaintenanceFacility? facility) async {
     final current = _requireSelected(facility, 'Select a facility to reject.');
     if (current == null) return;
-    setState(() {
-      _overrides[_facilityKey(current)] =
-          _copyFacility(current, status: 'Rejected');
-    });
-    showAppSnack(context, 'Facility & service management rejected');
+    if (current.id == null) {
+      setState(() {
+        _overrides[_facilityKey(current)] =
+            _copyFacility(current, status: 'Rejected');
+      });
+      showAppSnack(context, 'Facility & service management rejected');
+      return;
+    }
+    try {
+      await AppApiService.instance.updateFacilityStatus(
+        facilityId: current.id!,
+        status: 'Rejected',
+      );
+      if (!mounted) return;
+      _reload();
+      showAppSnack(context, 'Facility & service management rejected');
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
   Future<void> _assignFacility(MaintenanceFacility? facility) async {
     final current = _requireSelected(facility, 'Select a facility to assign.');
     if (current == null) return;
-    final controller = TextEditingController(
-        text: _assignments[_facilityKey(current)] ?? 'Maintenance Team');
+    final staffMembers = (await AppApiService.instance.fetchStaff())
+        .where((staff) => staff.id != null && staff.status.toLowerCase() != 'inactive')
+        .toList()
+      ..sort((left, right) => left.name.compareTo(right.name));
+    if (!mounted) {
+      return;
+    }
+    if (staffMembers.isEmpty) {
+      showAppSnack(context, 'No active staff found for assignment.');
+      return;
+    }
+    StaffItem selectedStaff = staffMembers.firstWhere(
+      (staff) => staff.name == _assignments[_facilityKey(current)],
+      orElse: () => staffMembers.first,
+    );
     await showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Assign Facility & Service Management'),
-        content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(labelText: 'Assigned Team')),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              setState(() {
-                _assignments[_facilityKey(current)] = controller.text.trim();
-                _overrides[_facilityKey(current)] =
-                    _copyFacility(current, status: 'Assigned');
-              });
-              Navigator.pop(dialogContext);
-              showAppSnack(context, 'Facility & service management assigned');
-            },
-            child: const Text('Assign'),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Assign Facility & Service Management'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(current.name, style: Theme.of(dialogContext).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(
+                current.area ?? current.lastCheck,
+                style: Theme.of(dialogContext).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                initialValue: selectedStaff.id,
+                decoration: const InputDecoration(labelText: 'Assigned Staff'),
+                items: staffMembers
+                    .map(
+                      (staff) => DropdownMenuItem<int>(
+                        value: staff.id,
+                        child: Text('${staff.name} • ${staff.role}'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  final matches =
+                      staffMembers.where((staff) => staff.id == value);
+                  final matched = matches.isEmpty ? null : matches.first;
+                  if (matched == null) {
+                    return;
+                  }
+                  setDialogState(() {
+                    selectedStaff = matched;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Staff will only see this assigned job in their facility queue.',
+                style: Theme.of(dialogContext).textTheme.bodySmall,
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  await AppApiService.instance.createStaffTask(
+                    assignedStaffId: selectedStaff.id!,
+                    assignedStaffName: selectedStaff.name,
+                    title: _assignmentTitle(current),
+                    zone: current.area ?? current.name,
+                    priority: _assignmentPriority(current),
+                    category: _assignmentCategory(current),
+                    sourceType: current.serviceType,
+                    sourceId: current.id,
+                  );
+                  if (!dialogContext.mounted || !mounted) {
+                    return;
+                  }
+                  setState(() {
+                    _assignments[_facilityKey(current)] = selectedStaff.name;
+                    _overrides[_facilityKey(current)] =
+                        _copyFacility(current, status: 'Assigned');
+                  });
+                  Navigator.pop(dialogContext);
+                  showAppSnack(
+                    context,
+                    '${current.name} assigned to ${selectedStaff.name}',
+                  );
+                } catch (error) {
+                  if (!dialogContext.mounted || !mounted) {
+                    return;
+                  }
+                  showAppSnack(
+                    context,
+                    error.toString().replaceFirst('Exception: ', ''),
+                  );
+                }
+              },
+              child: const Text('Assign'),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  String _assignmentTitle(MaintenanceFacility facility) {
+    switch (facility.serviceType) {
+      case 'parking':
+        return 'Manage parking request for ${facility.name}';
+      case 'in_unit':
+        return 'Handle resident service for ${facility.name}';
+      case 'operations':
+        return 'Inspect ${facility.name}';
+      default:
+        return 'Follow up ${facility.name}';
+    }
+  }
+
+  String _assignmentPriority(MaintenanceFacility facility) {
+    if (facility.health < 70 || facility.status.toLowerCase().contains('urgent')) {
+      return 'High';
+    }
+    if (facility.serviceType == 'parking' || facility.serviceType == 'in_unit') {
+      return 'Medium';
+    }
+    return 'Low';
+  }
+
+  String _assignmentCategory(MaintenanceFacility facility) {
+    switch (facility.serviceType) {
+      case 'parking':
+        return 'Parking';
+      case 'in_unit':
+        return 'Resident Service';
+      case 'operations':
+        return 'Facility Operations';
+      default:
+        return 'Facility';
+    }
   }
 
   Future<void> _scheduleFacility(MaintenanceFacility? facility) async {
@@ -1228,6 +1445,151 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Close'))
         ],
+      ),
+    );
+  }
+
+  Future<void> _viewCustomServiceRequest(
+      CustomServiceRequestItem request) async {
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(request.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Resident: ${request.residentName}'),
+            Text('Unit: ${request.unitNumber}'),
+            Text('Zone: ${request.zone}'),
+            Text('Status: ${request.status}'),
+            if ((request.preferredSchedule ?? '').isNotEmpty)
+              Text('Preferred schedule: ${request.preferredSchedule}'),
+            if (request.assignedStaffName != null)
+              Text('Assigned staff: ${request.assignedStaffName}'),
+            if (request.quotedPrice != null)
+              Text('Quoted price: ${formatMoney(request.quotedPrice!)}'),
+            const SizedBox(height: 12),
+            Text(request.description),
+            if ((request.quoteNote ?? '').isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('Staff note: ${request.quoteNote}'),
+            ],
+            if ((request.residentDecisionNote ?? '').isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('Decision note: ${request.residentDecisionNote}'),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _assignCustomServiceRequest(
+      CustomServiceRequestItem request) async {
+    final staffMembers = (await AppApiService.instance.fetchStaff())
+        .where((staff) =>
+            staff.id != null && staff.status.toLowerCase() != 'inactive')
+        .toList()
+      ..sort((left, right) => left.name.compareTo(right.name));
+    if (!mounted) {
+      return;
+    }
+    if (staffMembers.isEmpty) {
+      showAppSnack(context, 'No active staff found for assignment.');
+      return;
+    }
+
+    StaffItem selectedStaff = staffMembers.first;
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Assign Custom Service'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                request.title,
+                style: Theme.of(dialogContext).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text('${request.residentName} • ${request.unitNumber}'),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                initialValue: selectedStaff.id,
+                decoration: const InputDecoration(labelText: 'Assigned Staff'),
+                items: staffMembers
+                    .map(
+                      (staff) => DropdownMenuItem<int>(
+                        value: staff.id,
+                        child: Text('${staff.name} • ${staff.role}'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  final matches =
+                      staffMembers.where((staff) => staff.id == value);
+                  final match = matches.isEmpty ? null : matches.first;
+                  if (match == null) {
+                    return;
+                  }
+                  setDialogState(() {
+                    selectedStaff = match;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Staff will quote first. A real job is only created after the resident confirms that quote.',
+                style: Theme.of(dialogContext).textTheme.bodySmall,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  await AppApiService.instance.assignCustomServiceRequest(
+                    requestId: request.id!,
+                    staffId: selectedStaff.id!,
+                    staffName: selectedStaff.name,
+                  );
+                  if (!dialogContext.mounted || !mounted) {
+                    return;
+                  }
+                  Navigator.pop(dialogContext);
+                  _reload();
+                  showAppSnack(
+                    context,
+                    '${request.title} assigned to ${selectedStaff.name}',
+                  );
+                } catch (error) {
+                  if (!dialogContext.mounted || !mounted) {
+                    return;
+                  }
+                  showAppSnack(
+                    context,
+                    error.toString().replaceFirst('Exception: ', ''),
+                  );
+                }
+              },
+              child: const Text('Assign'),
+            ),
+          ],
+        ),
       ),
     );
   }

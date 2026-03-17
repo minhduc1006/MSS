@@ -3,10 +3,12 @@ package com.mss.billing.controller;
 import com.mss.billing.dto.BillingDtos;
 import com.mss.billing.service.BillingDomainService;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +38,27 @@ public class BillingController {
     @PostMapping("/billing/invoices")
     public BillingDtos.CreateInvoiceResponse createInvoice(@RequestBody BillingDtos.CreateInvoiceRequest request) {
         return service.createInvoice(request);
+    }
+
+    @PutMapping("/billing/invoices/{invoiceId}")
+    public BillingDtos.BillItem updateInvoice(
+        @PathVariable Long invoiceId,
+        @RequestBody BillingDtos.CreateInvoiceRequest request
+    ) {
+        return service.updateInvoice(invoiceId, request);
+    }
+
+    @PostMapping("/billing/invoices/{invoiceId}/status")
+    public BillingDtos.BillItem updateInvoiceStatus(
+        @PathVariable Long invoiceId,
+        @RequestBody BillingDtos.UpdateInvoiceStatusRequest request
+    ) {
+        return service.updateInvoiceStatus(invoiceId, request);
+    }
+
+    @DeleteMapping("/billing/invoices/{invoiceId}")
+    public BillingDtos.BillItem deactivateInvoice(@PathVariable Long invoiceId) {
+        return service.deactivateInvoice(invoiceId);
     }
 
     @PostMapping("/billing/{invoiceId}/send-email")
@@ -80,5 +103,31 @@ public class BillingController {
     @GetMapping("/apartments")
     public BillingDtos.ApartmentStats apartments() {
         return service.apartments();
+    }
+
+    @PostMapping("/apartments")
+    public BillingDtos.UnitItem createApartment(@RequestBody BillingDtos.CreateApartmentUnitRequest request) {
+        return service.createApartment(request);
+    }
+
+    @PutMapping("/apartments/{unitId}")
+    public BillingDtos.UnitItem updateApartment(
+        @PathVariable Long unitId,
+        @RequestBody BillingDtos.CreateApartmentUnitRequest request
+    ) {
+        return service.updateApartment(unitId, request);
+    }
+
+    @PostMapping("/apartments/{unitId}/status")
+    public BillingDtos.UnitItem updateApartmentStatus(
+        @PathVariable Long unitId,
+        @RequestBody BillingDtos.UpdateApartmentUnitStatusRequest request
+    ) {
+        return service.updateApartmentStatus(unitId, request);
+    }
+
+    @DeleteMapping("/apartments/{unitId}")
+    public BillingDtos.UnitItem deactivateApartment(@PathVariable Long unitId) {
+        return service.deactivateApartment(unitId);
     }
 }

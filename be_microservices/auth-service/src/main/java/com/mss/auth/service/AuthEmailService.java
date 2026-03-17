@@ -4,12 +4,13 @@ import com.mss.auth.model.AppUser;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 @Service
 public class AuthEmailService {
@@ -19,19 +20,19 @@ public class AuthEmailService {
     private final String portalUrl;
 
     public AuthEmailService(
-        JavaMailSender mailSender,
+        ObjectProvider<JavaMailSender> mailSenderProvider,
         Environment environment,
         @Value("${security.mail.from:}") String fromAddress,
         @Value("${app.portal-url:http://localhost:3000}") String portalUrl
     ) {
-        this.mailSender = mailSender;
+        this.mailSender = mailSenderProvider.getIfAvailable();
         this.environment = environment;
         this.fromAddress = fromAddress;
         this.portalUrl = portalUrl;
     }
 
     public void sendPasswordResetOtp(AppUser user, String otp) {
-        if (!hasText(environment.getProperty("spring.mail.host"))) {
+        if (mailSender == null || !hasText(environment.getProperty("spring.mail.host"))) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Email service is not configured. Set spring.mail.* first.");
         }
 

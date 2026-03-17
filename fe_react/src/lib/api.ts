@@ -3,6 +3,16 @@ export const BILLING_API_BASE = import.meta.env.VITE_BILLING_API_BASE ?? "http:/
 
 const SESSION_KEY = "mss-session";
 
+export class ApiError extends Error {
+  statusCode?: number;
+
+  constructor(message: string, statusCode?: number) {
+    super(message);
+    this.name = "ApiError";
+    this.statusCode = statusCode;
+  }
+}
+
 export interface SessionUser {
   id: number;
   fullName: string;
@@ -82,7 +92,7 @@ export async function apiRequest<T>(url: string, init?: RequestInit): Promise<T>
         message = errorText;
       }
     }
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   if (response.status === 204) {

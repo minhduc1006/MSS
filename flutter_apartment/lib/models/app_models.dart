@@ -171,6 +171,14 @@ class MaintenanceFacility {
   final List<String> logs;
   final String? area;
   final String? icon;
+  final String? description;
+  final String serviceType;
+  final String bookingMode;
+  final double oneTimePrice;
+  final double monthlyPrice;
+  final double yearlyPrice;
+  final List<String> slotCodes;
+  final List<String> occupiedSlotCodes;
 
   const MaintenanceFacility({
     this.id,
@@ -181,6 +189,14 @@ class MaintenanceFacility {
     required this.logs,
     this.area,
     this.icon,
+    this.description,
+    this.serviceType = 'shared',
+    this.bookingMode = 'timeslot',
+    this.oneTimePrice = 0,
+    this.monthlyPrice = 0,
+    this.yearlyPrice = 0,
+    this.slotCodes = const [],
+    this.occupiedSlotCodes = const [],
   });
 }
 
@@ -191,19 +207,81 @@ class BookingItem {
   final String time;
   final String location;
   final String status;
+  final String? slotCode;
+  final String? planType;
+  final double amount;
 
-  const BookingItem({this.id, this.facilityId, required this.title, required this.time, required this.location, required this.status});
+  const BookingItem({
+    this.id,
+    this.facilityId,
+    required this.title,
+    required this.time,
+    required this.location,
+    required this.status,
+    this.slotCode,
+    this.planType,
+    this.amount = 0,
+  });
 }
 
 class TaskItem {
   final int? id;
+  final int? sourceId;
+  final String? sourceType;
+  final String? assignedStaffName;
   final String title;
   final String zone;
   final String priority;
   final String status;
   final String? category;
 
-  const TaskItem({this.id, required this.title, required this.zone, required this.priority, required this.status, this.category});
+  const TaskItem({
+    this.id,
+    this.sourceId,
+    this.sourceType,
+    this.assignedStaffName,
+    required this.title,
+    required this.zone,
+    required this.priority,
+    required this.status,
+    this.category,
+  });
+}
+
+class CustomServiceRequestItem {
+  final int? id;
+  final int residentId;
+  final String residentName;
+  final String unitNumber;
+  final String title;
+  final String description;
+  final String zone;
+  final String? preferredSchedule;
+  final String status;
+  final int? assignedStaffId;
+  final String? assignedStaffName;
+  final double? quotedPrice;
+  final String? quoteNote;
+  final String? residentDecisionNote;
+  final String createdAt;
+
+  const CustomServiceRequestItem({
+    this.id,
+    required this.residentId,
+    required this.residentName,
+    required this.unitNumber,
+    required this.title,
+    required this.description,
+    required this.zone,
+    this.preferredSchedule,
+    required this.status,
+    this.assignedStaffId,
+    this.assignedStaffName,
+    this.quotedPrice,
+    this.quoteNote,
+    this.residentDecisionNote,
+    required this.createdAt,
+  });
 }
 
 class BillingOverviewData {

@@ -8,12 +8,14 @@ com\mss\facility\dto\FacilityDtos$BookingItem.class
 com\mss\facility\repository\BookingRepository.class
 com\mss\facility\model\Facility.class
 com\mss\facility\FacilityServiceApplication.class
+com\mss\facility\dto\FacilityDtos$CreateFacilityRequest.class
 com\mss\facility\repository\MaintenanceLogRepository.class
 com\mss\facility\service\FacilitySeeder.class
 com\mss\facility\dto\FacilityDtos.class
 com\mss\facility\repository\AnnouncementRepository.class
 com\mss\facility\dto\FacilityDtos$FacilityItem.class
 com\mss\facility\repository\FacilityRepository.class
+com\mss\facility\dto\FacilityDtos$UpdateFacilityStatusRequest.class
 com\mss\facility\dto\FacilityDtos$AnnouncementItem.class
 com\mss\facility\model\Announcement.class
 com\mss\facility\config\WebConfig.class

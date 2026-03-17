@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -18,6 +19,9 @@ public class Booking {
     private LocalDate bookingDate;
     private String timeSlot;
     private String status;
+    private String slotCode;
+    private String planType;
+    private BigDecimal amount;
 
     public Long getId() { return id; }
     public Long getResidentId() { return residentId; }
@@ -32,4 +36,10 @@ public class Booking {
     public void setTimeSlot(String timeSlot) { this.timeSlot = timeSlot; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getSlotCode() { return slotCode; }
+    public void setSlotCode(String slotCode) { this.slotCode = slotCode; }
+    public String getPlanType() { return planType; }
+    public void setPlanType(String planType) { this.planType = planType; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
 }

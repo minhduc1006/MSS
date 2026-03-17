@@ -87,6 +87,46 @@ public class BillingDomainService {
         return new BillingDtos.CreateInvoiceResponse(toBill(saved), emailResponse);
     }
 
+    public BillingDtos.BillItem updateInvoice(Long invoiceId, BillingDtos.CreateInvoiceRequest request) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found"));
+        if (request.title() == null || request.title().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice title is required");
+        }
+        if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice amount must be greater than zero");
+        }
+        invoice.setResidentId(request.residentId() == null ? invoice.getResidentId() : request.residentId());
+        invoice.setResidentName(request.residentName());
+        if (hasText(request.residentEmail())) {
+            invoice.setResidentEmail(request.residentEmail().trim());
+        }
+        invoice.setUnitNumber(request.unitNumber());
+        invoice.setTitle(request.title());
+        invoice.setCategory(request.category() == null || request.category().isBlank() ? invoice.getCategory() : request.category());
+        invoice.setAmount(request.amount());
+        invoice.setDueDate(request.dueDate() == null ? invoice.getDueDate() : request.dueDate());
+        invoice.setDescription(request.description());
+        return toBill(invoiceRepository.save(invoice));
+    }
+
+    public BillingDtos.BillItem updateInvoiceStatus(Long invoiceId, BillingDtos.UpdateInvoiceStatusRequest request) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found"));
+        if (!hasText(request.status())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice status is required");
+        }
+        invoice.setStatus(request.status().trim());
+        return toBill(invoiceRepository.save(invoice));
+    }
+
+    public BillingDtos.BillItem deactivateInvoice(Long invoiceId) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found"));
+        invoice.setStatus("Deactivated");
+        return toBill(invoiceRepository.save(invoice));
+    }
+
     public BillingDtos.PaymentSession createCheckout(Long invoiceId, BillingDtos.CreatePaymentSessionRequest request) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found"));
@@ -142,6 +182,7 @@ public class BillingDomainService {
         invoice.setStatus("Paid");
         invoice.setPaidAt(LocalDateTime.now());
         Invoice saved = invoiceRepository.save(invoice);
+        invoiceEmailService.sendPaymentReceiptEmail(saved);
         return toBill(saved);
     }
 
@@ -155,6 +196,7 @@ public class BillingDomainService {
                     invoice.setStatus("Paid");
                     invoice.setPaidAt(LocalDateTime.now());
                     invoice.setCheckoutUrl(null);
+                    invoiceEmailService.sendPaymentReceiptEmail(invoice);
                 }
                 invoiceRepository.save(invoice);
             });
@@ -204,6 +246,39 @@ public class BillingDomainService {
         return new BillingDtos.ApartmentStats(units.size(), units.stream().filter(u -> "Occupied".equalsIgnoreCase(u.getOccupancyStatus())).count(), units.stream().map(this::toUnit).toList());
     }
 
+    public BillingDtos.UnitItem createApartment(BillingDtos.CreateApartmentUnitRequest request) {
+        validateApartmentRequest(request, null);
+        ApartmentUnit unit = new ApartmentUnit();
+        applyApartment(unit, request);
+        return toUnit(unitRepository.save(unit));
+    }
+
+    public BillingDtos.UnitItem updateApartment(Long unitId, BillingDtos.CreateApartmentUnitRequest request) {
+        validateApartmentRequest(request, unitId);
+        ApartmentUnit unit = unitRepository.findById(unitId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Apartment unit not found"));
+        applyApartment(unit, request);
+        return toUnit(unitRepository.save(unit));
+    }
+
+    public BillingDtos.UnitItem updateApartmentStatus(Long unitId, BillingDtos.UpdateApartmentUnitStatusRequest request) {
+        ApartmentUnit unit = unitRepository.findById(unitId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Apartment unit not found"));
+        String status = request == null ? null : request.status();
+        if (!hasText(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Apartment status is required");
+        }
+        unit.setOccupancyStatus(status.trim());
+        return toUnit(unitRepository.save(unit));
+    }
+
+    public BillingDtos.UnitItem deactivateApartment(Long unitId) {
+        ApartmentUnit unit = unitRepository.findById(unitId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Apartment unit not found"));
+        unit.setOccupancyStatus("Deactivated");
+        return toUnit(unitRepository.save(unit));
+    }
+
     public BillingDtos.InvoiceEmailResponse sendInvoiceEmail(Long invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found"));
@@ -247,6 +322,35 @@ public class BillingDomainService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Resident email is required");
         }
         return resolvedEmail.trim();
+    }
+
+    private void validateApartmentRequest(BillingDtos.CreateApartmentUnitRequest request, Long excludedId) {
+        if (request == null || !hasText(request.unitNumber())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unit number is required");
+        }
+        if (!hasText(request.tower())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tower is required");
+        }
+        if (!hasText(request.unitType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unit type is required");
+        }
+        if (!hasText(request.occupancyStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Occupancy status is required");
+        }
+        unitRepository.findByUnitNumberIgnoreCase(request.unitNumber().trim()).ifPresent(existing -> {
+            if (excludedId == null || !existing.getId().equals(excludedId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Unit number already exists");
+            }
+        });
+    }
+
+    private void applyApartment(ApartmentUnit unit, BillingDtos.CreateApartmentUnitRequest request) {
+        unit.setUnitNumber(request.unitNumber().trim());
+        unit.setTower(request.tower().trim());
+        unit.setUnitType(request.unitType().trim());
+        unit.setOccupancyStatus(request.occupancyStatus().trim());
+        unit.setResidentName(hasText(request.residentName()) ? request.residentName().trim() : null);
+        unit.setBalance(request.balance() == null ? BigDecimal.ZERO : request.balance());
     }
 
     private PayOS requirePayOs() {

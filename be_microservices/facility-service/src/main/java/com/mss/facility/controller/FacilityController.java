@@ -3,9 +3,11 @@ package com.mss.facility.controller;
 import com.mss.facility.dto.FacilityDtos;
 import com.mss.facility.service.FacilityDomainService;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +26,32 @@ public class FacilityController {
     @GetMapping("/facilities")
     public FacilityDtos.FacilitiesResponse facilities() {
         return service.facilities();
+    }
+
+    @PostMapping("/facilities")
+    public FacilityDtos.FacilityItem createFacility(@Valid @RequestBody FacilityDtos.CreateFacilityRequest request) {
+        return service.createFacility(request);
+    }
+
+    @PutMapping("/facilities/{facilityId}")
+    public FacilityDtos.FacilityItem updateFacility(
+        @PathVariable Long facilityId,
+        @Valid @RequestBody FacilityDtos.CreateFacilityRequest request
+    ) {
+        return service.updateFacility(facilityId, request);
+    }
+
+    @PostMapping("/facilities/{facilityId}/status")
+    public FacilityDtos.FacilityItem updateFacilityStatus(
+        @PathVariable Long facilityId,
+        @Valid @RequestBody FacilityDtos.UpdateFacilityStatusRequest request
+    ) {
+        return service.updateFacilityStatus(facilityId, request);
+    }
+
+    @DeleteMapping("/facilities/{facilityId}")
+    public FacilityDtos.FacilityItem deactivateFacility(@PathVariable Long facilityId) {
+        return service.deactivateFacility(facilityId);
     }
 
     @PostMapping("/facilities/{facilityId}/logs")

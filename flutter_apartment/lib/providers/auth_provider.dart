@@ -84,8 +84,8 @@ class AuthProvider extends ChangeNotifier {
       _googleInitialized = true;
       notifyListeners();
       unawaited(_googleSignIn.attemptLightweightAuthentication());
-    } catch (_) {
-      rethrow;
+    } on UnimplementedError {
+      _googleInitialized = false;
     }
   }
 
@@ -101,7 +101,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _handleGoogleAuthError(Object error) {
-    _errorMessage = error.toString().replaceFirst('Exception: ', '');
+    _errorMessage = _mapGoogleLoginError(error);
     _isLoading = false;
     notifyListeners();
   }
@@ -145,8 +145,7 @@ class AuthProvider extends ChangeNotifier {
       _role = user.role;
       return true;
     } catch (error) {
-      final message = error.toString().replaceFirst('Exception: ', '').trim();
-      _errorMessage = 'Login failed. $message';
+      _errorMessage = _mapLoginError(error);
       return false;
     } finally {
       _isLoading = false;
@@ -168,8 +167,7 @@ class AuthProvider extends ChangeNotifier {
       await _hydrateGoogleSession(account);
       return true;
     } catch (error) {
-      final message = error.toString().replaceFirst('Exception: ', '').trim();
-      _errorMessage = 'Google Sign-In failed. $message';
+      _errorMessage = _mapGoogleLoginError(error);
       return false;
     } finally {
       _isLoading = false;
@@ -198,6 +196,45 @@ class AuthProvider extends ChangeNotifier {
     }
     return fallback;
   }
+
+  String _mapLoginError(Object error) {
+    final normalized = _normalizedError(error);
+    final statusCode = error is ApiException ? error.statusCode : null;
+
+    if (statusCode == 401 ||
+        normalized.contains('invalid credentials') ||
+        normalized.contains('unauthorized')) {
+      return 'Tài khoản hoặc mật khẩu không đúng.';
+    }
+    if (statusCode == 403 ||
+        normalized.contains('access denied') ||
+        normalized.contains('forbidden') ||
+        normalized.contains('permission')) {
+      return 'Tài khoản không có quyền truy cập vào khu vực này.';
+    }
+    if (normalized.contains('unable to reach backend') ||
+        normalized.contains('network') ||
+        normalized.contains('timeout')) {
+      return 'Không thể kết nối tới hệ thống đăng nhập. Vui lòng thử lại.';
+    }
+    return 'Không thể đăng nhập lúc này. Vui lòng thử lại.';
+  }
+
+  String _mapGoogleLoginError(Object error) {
+    final normalized = _normalizedError(error);
+    if (normalized.contains('cancel') || normalized.contains('canceled')) {
+      return 'Bạn đã hủy đăng nhập Google.';
+    }
+    if (normalized.contains('needs the web google button') ||
+        normalized.contains('oauth setup') ||
+        normalized.contains('unsupported')) {
+      return 'Đăng nhập Google hiện chưa được cấu hình trên thiết bị này.';
+    }
+    return 'Không thể đăng nhập bằng Google lúc này.';
+  }
+
+  String _normalizedError(Object error) =>
+      error.toString().replaceFirst('Exception: ', '').trim().toLowerCase();
 
   @override
   void dispose() {

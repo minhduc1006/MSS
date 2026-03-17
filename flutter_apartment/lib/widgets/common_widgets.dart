@@ -74,7 +74,7 @@ List<NavItem> navItemsForRole(UserRole role) {
             index: 1,
             icon: Icons.receipt_long_rounded),
         NavItem(
-            label: 'Bookings',
+            label: 'Services',
             route: '/resident/bookings',
             index: 2,
             icon: Icons.book_online_rounded),
@@ -168,7 +168,7 @@ List<NavItem> drawerItemsForRole(UserRole role) {
             index: 1,
             icon: Icons.receipt_long_rounded),
         NavItem(
-            label: 'Bookings',
+            label: 'Services',
             route: '/resident/bookings',
             index: 2,
             icon: Icons.book_online_rounded),

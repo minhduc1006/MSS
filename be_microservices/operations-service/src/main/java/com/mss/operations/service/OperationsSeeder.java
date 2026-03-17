@@ -44,6 +44,7 @@ public class OperationsSeeder implements CommandLineRunner {
     private void task(Long staffId, String title, String zone, String priority, String status, String category) {
         StaffTask task = new StaffTask();
         task.setAssignedStaffId(staffId);
+        task.setAssignedStaffName(staffId == 8L ? "David Miller" : staffId == 9L ? "Sarah Connor" : "Robert Wilson");
         task.setTitle(title);
         task.setZone(zone);
         task.setPriority(priority);

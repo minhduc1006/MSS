@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, HelpCircle, Globe, ArrowLeft } from "lucide-react";
 import { useToast } from "../components/Toast";
-import { AUTH_API_BASE, apiRequest, saveSession, type SessionUser } from "../lib/api";
+import { AUTH_API_BASE, ApiError, apiRequest, saveSession, type SessionUser } from "../lib/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ export default function Login() {
       showToast("Đăng nhập thành công.", "success");
       navigate(resolveRoute(user.role), { replace: true });
     } catch (error) {
-      showToast(error instanceof Error ? error.message : "Không thể đăng nhập.", "error");
+      showToast(mapLoginError(error), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -65,32 +65,45 @@ export default function Login() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f6f7f8] max-w-md mx-auto shadow-2xl font-['Manrope'] dark:bg-[#101922]">
-      <div className="flex items-center p-4 pb-2 justify-between sticky top-0 z-10">
-        <Link to="/" className="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center">
-          <ArrowLeft className="w-6 h-6" />
+      <div className="sticky top-0 z-10 flex items-center justify-between p-4 pb-2">
+        <Link to="/" className="flex size-12 shrink-0 items-center text-slate-900 dark:text-slate-100">
+          <ArrowLeft className="h-6 w-6" />
         </Link>
-        <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Login</h2>
+        <h2 className="flex-1 pr-12 text-center text-lg font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-slate-100">
+          Login
+        </h2>
       </div>
 
       <div className="px-4 py-3">
         <div
-          className="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden bg-[#137fec]/10 rounded-xl min-h-[200px]"
-          style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAbnnPngkff7-HTTW2Z9S-4lSnQa2AzSBvURVLA2GEzheb9tMWO3xwtfriHrZE2Mq9w6W4RkMoz9gXdZ5CAJTGHJdcQejfFjrbejqUfxnQt9w2VZO4OP9P6kHEP48DzxaqIvNfr9ZBjLNIfFfEUsp_8EBQzhF5TTrqTU_75qbayXJ4tCCwyALiiRgVGoUa1vAKLwPQMt2o_JZfWdawr8GsF-cpP8ZKmLEI_Eu40JzKIEdxlArCbfep1r4C4vTfKg768K9NpVKa8GYM")' }}
+          className="min-h-[200px] w-full overflow-hidden rounded-xl bg-[#137fec]/10 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage:
+              'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAbnnPngkff7-HTTW2Z9S-4lSnQa2AzSBvURVLA2GEzheb9tMWO3xwtfriHrZE2Mq9w6W4RkMoz9gXdZ5CAJTGHJdcQejfFjrbejqUfxnQt9w2VZO4OP9P6kHEP48DzxaqIvNfr9ZBjLNIfFfEUsp_8EBQzhF5TTrqTU_75qbayXJ4tCCwyALiiRgVGoUa1vAKLwPQMt2o_JZfWdawr8GsF-cpP8ZKmLEI_Eu40JzKIEdxlArCbfep1r4C4vTfKg768K9NpVKa8GYM")',
+          }}
         />
       </div>
 
       <div className="px-6 py-4">
-        <h1 className="text-slate-900 dark:text-slate-100 tracking-tight text-3xl font-extrabold leading-tight text-center">Welcome Back</h1>
-        <p className="text-slate-600 dark:text-slate-400 text-base font-normal leading-normal pt-2 text-center">Enter your credentials to access the management portal</p>
+        <h1 className="text-center text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-slate-100">
+          Welcome Back
+        </h1>
+        <p className="pt-2 text-center text-base font-normal leading-normal text-slate-600 dark:text-slate-400">
+          Enter your credentials to access the management portal
+        </p>
       </div>
 
       <div className="px-6 py-2">
-        <div className="flex h-12 w-full items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-800 p-1">
+        <div className="flex h-12 w-full items-center justify-center rounded-xl bg-slate-200 p-1 dark:bg-slate-800">
           {(["resident", "staff", "admin"] as const).map((item) => (
             <button
               key={item}
               onClick={() => setRole(item)}
-              className={`flex grow items-center justify-center overflow-hidden rounded-lg px-2 text-[13px] font-semibold leading-normal transition-all h-full ${role === item ? "bg-white dark:bg-slate-700 shadow-sm text-[#137fec]" : "text-slate-600 dark:text-slate-400"}`}
+              className={`h-full grow rounded-lg px-2 text-[13px] font-semibold leading-normal transition-all ${
+                role === item
+                  ? "bg-white text-[#137fec] shadow-sm dark:bg-slate-700"
+                  : "text-slate-600 dark:text-slate-400"
+              }`}
             >
               {item.charAt(0).toUpperCase() + item.slice(1)}
             </button>
@@ -98,15 +111,15 @@ export default function Login() {
         </div>
       </div>
 
-      <div className="px-6 py-4 flex flex-col gap-4">
+      <div className="flex flex-col gap-4 px-6 py-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Email</label>
+          <label className="ml-1 text-sm font-semibold text-slate-700 dark:text-slate-300">Email</label>
           <div className="relative flex items-center">
-            <Mail className="absolute left-4 text-slate-400 w-5 h-5" />
+            <Mail className="absolute left-4 h-5 w-5 text-slate-400" />
             <input
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-[#137fec] focus:border-transparent outline-none text-slate-900 dark:text-slate-100"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-12 pr-4 text-slate-900 outline-none focus:border-transparent focus:ring-2 focus:ring-[#137fec] dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
               placeholder="name@apartment.com"
               type="email"
             />
@@ -114,9 +127,9 @@ export default function Login() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Password</label>
+          <label className="ml-1 text-sm font-semibold text-slate-700 dark:text-slate-300">Password</label>
           <div className="relative flex items-center">
-            <Lock className="absolute left-4 text-slate-400 w-5 h-5" />
+            <Lock className="absolute left-4 h-5 w-5 text-slate-400" />
             <input
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -125,24 +138,29 @@ export default function Login() {
                   void handleLogin();
                 }
               }}
-              className="w-full pl-12 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-[#137fec] focus:border-transparent outline-none text-slate-900 dark:text-slate-100"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-12 pr-12 text-slate-900 outline-none focus:border-transparent focus:ring-2 focus:ring-[#137fec] dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
               placeholder="••••••••"
               type={showPassword ? "text" : "password"}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 text-slate-400 cursor-pointer"
+              className="absolute right-4 cursor-pointer text-slate-400"
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
         <div className="flex items-center justify-between px-1">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-[#137fec] focus:ring-[#137fec] bg-white dark:bg-slate-900" type="checkbox" />
-            <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-[#137fec] transition-colors font-medium">Remember me</span>
+          <label className="group flex cursor-pointer items-center gap-2">
+            <input
+              className="h-4 w-4 rounded border-slate-300 bg-white text-[#137fec] focus:ring-[#137fec] dark:border-slate-700 dark:bg-slate-900"
+              type="checkbox"
+            />
+            <span className="text-sm font-medium text-slate-600 transition-colors group-hover:text-[#137fec] dark:text-slate-400">
+              Remember me
+            </span>
           </label>
           <Link className="text-sm font-semibold text-[#137fec] hover:underline" to="/reset-password">
             Forgot password?
@@ -152,48 +170,68 @@ export default function Login() {
         <button
           disabled={isSubmitting}
           onClick={() => void handleLogin()}
-          className="w-full bg-[#137fec] hover:bg-[#137fec]/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-[#137fec]/20 transition-all mt-4 active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
+          className="mt-4 w-full rounded-xl bg-[#137fec] py-4 font-bold text-white shadow-lg shadow-[#137fec]/20 transition-all active:scale-[0.98] hover:bg-[#137fec]/90 disabled:opacity-60 disabled:active:scale-100"
         >
           {isSubmitting ? "Signing In..." : "Sign In"}
         </button>
 
-        <div className="flex items-center gap-3 my-2">
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">or</span>
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+        <div className="my-2 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">or</span>
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
         </div>
 
         <button
           onClick={handleGoogleLogin}
-          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold py-4 rounded-xl shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+          className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white py-4 font-bold text-slate-900 shadow-sm transition-all active:scale-[0.98] hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
         >
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+          <img
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            className="h-5 w-5"
+            alt="Google"
+          />
           Sign In with Google
         </button>
       </div>
 
       <div className="mt-auto px-6 py-8 text-center">
-        <p className="text-slate-500 dark:text-slate-500 text-sm">
+        <p className="text-sm text-slate-500 dark:text-slate-500">
           Don&apos;t have an account?
-          <a className="text-[#137fec] font-bold hover:underline ml-1" href="#">
+          <a className="ml-1 font-bold text-[#137fec] hover:underline" href="#">
             Contact Management
           </a>
         </p>
       </div>
 
       <div className="flex justify-center gap-4 pb-8">
-        <div className="flex items-center gap-1 text-slate-400 hover:text-[#137fec] cursor-pointer transition-colors">
-          <HelpCircle className="w-4 h-4" />
+        <div className="flex cursor-pointer items-center gap-1 text-slate-400 transition-colors hover:text-[#137fec]">
+          <HelpCircle className="h-4 w-4" />
           <span className="text-xs font-semibold">Help Center</span>
         </div>
-        <div className="w-px h-4 bg-slate-200 dark:bg-slate-800 self-center"></div>
-        <div className="flex items-center gap-1 text-slate-400 hover:text-[#137fec] cursor-pointer transition-colors">
-          <Globe className="w-4 h-4" />
+        <div className="h-4 w-px self-center bg-slate-200 dark:bg-slate-800" />
+        <div className="flex cursor-pointer items-center gap-1 text-slate-400 transition-colors hover:text-[#137fec]">
+          <Globe className="h-4 w-4" />
           <span className="text-xs font-semibold">English</span>
         </div>
       </div>
     </div>
   );
+}
+
+function mapLoginError(error: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase().trim() : "";
+  const statusCode = error instanceof ApiError ? error.statusCode : undefined;
+
+  if (statusCode === 401 || message.includes("invalid credentials") || message.includes("unauthorized")) {
+    return "Tài khoản hoặc mật khẩu không đúng.";
+  }
+  if (statusCode === 403 || message.includes("access denied") || message.includes("forbidden") || message.includes("permission")) {
+    return "Tài khoản không có quyền truy cập vào khu vực này.";
+  }
+  if (message.includes("failed to fetch") || message.includes("network") || message.includes("timeout")) {
+    return "Không thể kết nối tới hệ thống đăng nhập. Vui lòng thử lại.";
+  }
+  return "Không thể đăng nhập lúc này. Vui lòng thử lại.";
 }
 
 function resolveRoute(role: SessionUser["role"]) {

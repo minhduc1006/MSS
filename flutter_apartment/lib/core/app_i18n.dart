@@ -87,7 +87,8 @@ class AppI18n {
     'Settings': {AppLanguage.vi: 'Cài đặt'},
     'Home': {AppLanguage.vi: 'Trang chủ'},
     'Bills': {AppLanguage.vi: 'Hóa đơn'},
-    'Bookings': {AppLanguage.vi: 'Đặt chỗ'},
+    'Bookings': {AppLanguage.vi: 'Dịch vụ'},
+    'Services': {AppLanguage.vi: 'Dịch vụ'},
     'Account': {AppLanguage.vi: 'Tài khoản'},
     'Notifications': {AppLanguage.vi: 'Thông báo'},
     'Mark all read': {AppLanguage.vi: 'Đánh dấu đã đọc'},
@@ -130,7 +131,8 @@ class AppI18n {
     },
     'Administration Console': {AppLanguage.vi: 'Bảng điều khiển quản trị'},
     'Operations team management': {AppLanguage.vi: 'Quản lý đội vận hành'},
-    'Resident Bookings': {AppLanguage.vi: 'Đặt chỗ của cư dân'},
+    'Resident Bookings': {AppLanguage.vi: 'Dịch vụ của cư dân'},
+    'Resident Services Hub': {AppLanguage.vi: 'Trung tâm dịch vụ cư dân'},
     'Resident facilities and announcements': {
       AppLanguage.vi: 'Tiện ích và thông báo dành cho cư dân'
     },
@@ -417,12 +419,12 @@ class AppI18n {
   };
 
   static String text(BuildContext context, String key) {
-    final language = Provider.of<AppState>(context).language;
+    final language = Provider.of<AppState>(context, listen: false).language;
     return _normalizeLocalized(_strings[key]?[language] ?? key, language);
   }
 
   static String rawText(BuildContext context, String input) {
-    final language = Provider.of<AppState>(context).language;
+    final language = Provider.of<AppState>(context, listen: false).language;
     return _normalizeLocalized(
         _rawStrings[input]?[language] ?? input, language);
   }

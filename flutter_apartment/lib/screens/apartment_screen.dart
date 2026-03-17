@@ -18,8 +18,6 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
     'All',
     'Occupied',
     'Vacant',
-    'Pending Approval',
-    'Rejected',
     'Assigned',
     'Deactivated'
   ];
@@ -34,7 +32,6 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
 
   String _filter = _filters.first;
   String? _selectedUnit;
-  bool _autoApprove = false;
   bool _emailNotifications = true;
   bool _liveMonitoring = true;
 
@@ -61,7 +58,7 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
   Widget build(BuildContext context) {
     return AppShell(
       title: 'Apartment Administration',
-      subtitle: 'Create, approve, assign, monitor, and configure units',
+      subtitle: 'Create and manage apartment units',
       role: UserRole.admin,
       currentIndex: 0,
       showBottomNav: false,
@@ -81,12 +78,10 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
 
           final units = _units(snapshot.data);
           final filtered = _filteredUnits(units);
-          final selected = _selected(units);
           final occupied =
               units.where((u) => u.occupancyStatus == 'Occupied').length;
-          final pending = units
-              .where((u) => u.occupancyStatus == 'Pending Approval')
-              .length;
+          final assigned =
+              units.where((u) => u.occupancyStatus == 'Assigned').length;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -110,8 +105,8 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                     iconColor: const Color(0xFF137FEC),
                   ),
                   MetricCard(
-                    label: 'Pending',
-                    value: '$pending',
+                    label: 'Assigned',
+                    value: '$assigned',
                     note: _draftUnits.isEmpty
                         ? 'No draft changes'
                         : '${_draftUnits.length} draft units',
@@ -164,34 +159,6 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                       label: 'Export',
                       icon: Icons.download_rounded,
                       onTap: () => _exportUnits(units)),
-                  ActionTile(
-                      label: 'Import',
-                      icon: Icons.upload_rounded,
-                      onTap: _importUnits),
-                  ActionTile(
-                      label: 'Track',
-                      icon: Icons.track_changes_rounded,
-                      onTap: () => _showTracking(units)),
-                  ActionTile(
-                      label: 'Monitor',
-                      icon: Icons.monitor_heart_rounded,
-                      onTap: () => _showMonitoring(units)),
-                  ActionTile(
-                      label: 'Generate',
-                      icon: Icons.auto_awesome_rounded,
-                      onTap: () => _generatePack(units)),
-                  ActionTile(
-                      label: 'Manage',
-                      icon: Icons.dashboard_customize_rounded,
-                      onTap: () => _showManagement(units, selected)),
-                  ActionTile(
-                      label: 'Configure',
-                      icon: Icons.settings_rounded,
-                      onTap: _configureAdmin),
-                  ActionTile(
-                      label: 'Validate',
-                      icon: Icons.fact_check_rounded,
-                      onTap: () => _validateAdmin(units)),
                 ],
               ),
               const SizedBox(height: 18),
@@ -343,33 +310,9 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                   ),
                   _unitAction(
                     context,
-                    icon: Icons.check_circle_rounded,
-                    label: 'Approve',
-                    onTap: () => _approveUnit(unit),
-                  ),
-                  _unitAction(
-                    context,
-                    icon: Icons.cancel_rounded,
-                    label: 'Reject',
-                    onTap: () => _rejectUnit(unit),
-                  ),
-                  _unitAction(
-                    context,
                     icon: Icons.person_add_alt_1_rounded,
                     label: 'Assign',
                     onTap: () => _assignUnit(unit),
-                  ),
-                  _unitAction(
-                    context,
-                    icon: Icons.event_available_rounded,
-                    label: 'Schedule',
-                    onTap: () => _scheduleUnit(unit),
-                  ),
-                  _unitAction(
-                    context,
-                    icon: Icons.notifications_active_rounded,
-                    label: 'Notify',
-                    onTap: () => _notifyUnit(unit, totalUnits),
                   ),
                 ],
               ],
@@ -496,7 +439,6 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
     final towerController = TextEditingController(text: 'Skyview Tower');
     final typeController = TextEditingController(text: 'Standard');
     final residentController = TextEditingController();
-    bool pending = !_autoApprove;
     await showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
@@ -523,12 +465,6 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                     controller: residentController,
                     decoration:
                         const InputDecoration(labelText: 'Resident Name')),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Require approval'),
-                  value: pending,
-                  onChanged: (value) => setModalState(() => pending = value),
-                ),
               ],
             ),
           ),
@@ -537,28 +473,29 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                 onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Cancel')),
             FilledButton(
-              onPressed: () {
-                final unit = ApartmentUnitItem(
-                  id: null,
-                  unitNumber: unitController.text.trim(),
-                  tower: towerController.text.trim(),
-                  unitType: typeController.text.trim(),
-                  occupancyStatus: pending
-                      ? 'Pending Approval'
-                      : (residentController.text.trim().isEmpty
-                          ? 'Vacant'
-                          : 'Occupied'),
-                  residentName: residentController.text.trim().isEmpty
-                      ? null
-                      : residentController.text.trim(),
-                  balance: 0,
-                );
-                setState(() {
-                  _draftUnits.add(unit);
-                  _selectedUnit = unit.unitNumber;
-                });
-                Navigator.pop(dialogContext);
-                showAppSnack(context, 'Apartment administration created');
+              onPressed: () async {
+                try {
+                  final created = await AppApiService.instance.createApartmentUnit(
+                    unitNumber: unitController.text.trim(),
+                    tower: towerController.text.trim(),
+                    unitType: typeController.text.trim(),
+                    occupancyStatus: residentController.text.trim().isEmpty
+                        ? 'Vacant'
+                        : 'Occupied',
+                    residentName: residentController.text.trim().isEmpty
+                        ? null
+                        : residentController.text.trim(),
+                  );
+                  if (!dialogContext.mounted || !mounted) return;
+                  setState(() => _selectedUnit = created.unitNumber);
+                  Navigator.pop(dialogContext);
+                  _reload();
+                  showAppSnack(context, 'Apartment administration created');
+                } catch (error) {
+                  if (!dialogContext.mounted || !mounted) return;
+                  showAppSnack(
+                      context, error.toString().replaceFirst('Exception: ', ''));
+                }
               },
               child: const Text('Create'),
             ),
@@ -618,20 +555,44 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                 onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Cancel')),
             FilledButton(
-              onPressed: () {
-                setState(() {
-                  _overrides[current.unitNumber] = _copy(
-                    current,
+              onPressed: () async {
+                if (current.id == null) {
+                  setState(() {
+                    _overrides[current.unitNumber] = _copy(
+                      current,
+                      tower: towerController.text.trim(),
+                      type: typeController.text.trim(),
+                      residentName: residentController.text.trim().isEmpty
+                          ? null
+                          : residentController.text.trim(),
+                      status: status,
+                    );
+                  });
+                  Navigator.pop(dialogContext);
+                  showAppSnack(context, 'Apartment administration updated');
+                  return;
+                }
+                try {
+                  await AppApiService.instance.updateApartmentUnit(
+                    unitId: current.id!,
+                    unitNumber: current.unitNumber,
                     tower: towerController.text.trim(),
-                    type: typeController.text.trim(),
+                    unitType: typeController.text.trim(),
+                    occupancyStatus: status,
                     residentName: residentController.text.trim().isEmpty
                         ? null
                         : residentController.text.trim(),
-                    status: status,
+                    balance: current.balance,
                   );
-                });
-                Navigator.pop(dialogContext);
-                showAppSnack(context, 'Apartment administration updated');
+                  if (!dialogContext.mounted || !mounted) return;
+                  Navigator.pop(dialogContext);
+                  _reload();
+                  showAppSnack(context, 'Apartment administration updated');
+                } catch (error) {
+                  if (!dialogContext.mounted || !mounted) return;
+                  showAppSnack(
+                      context, error.toString().replaceFirst('Exception: ', ''));
+                }
               },
               child: const Text('Save'),
             ),
@@ -661,23 +622,53 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
       ),
     );
     if (shouldDelete != true) return;
-    setState(() {
-      _overrides[current.unitNumber] = _copy(current, status: 'Deactivated');
-      if (_selectedUnit == current.unitNumber) _selectedUnit = null;
-    });
-    if (!mounted) return;
-    showAppSnack(context, 'Apartment administration deactivated');
+    if (current.id == null) {
+      setState(() {
+        _overrides[current.unitNumber] = _copy(current, status: 'Deactivated');
+        if (_selectedUnit == current.unitNumber) _selectedUnit = null;
+      });
+      if (!mounted) return;
+      showAppSnack(context, 'Apartment administration deactivated');
+      return;
+    }
+    try {
+      await AppApiService.instance.deactivateApartmentUnit(current.id!);
+      if (!mounted) return;
+      if (_selectedUnit == current.unitNumber) {
+        setState(() => _selectedUnit = null);
+      }
+      _reload();
+      showAppSnack(context, 'Apartment administration deactivated');
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
-  void _activateUnit(ApartmentUnitItem? unit) {
+  Future<void> _activateUnit(ApartmentUnitItem? unit) async {
     final current =
         _requireSelected(unit, 'Select an apartment unit to activate.');
     if (current == null) return;
-    setState(() {
-      _overrides[current.unitNumber] = _copy(current,
-          status: current.residentName == null ? 'Vacant' : 'Occupied');
-    });
-    showAppSnack(context, 'Apartment administration activated');
+    final nextStatus = current.residentName == null ? 'Vacant' : 'Occupied';
+    if (current.id == null) {
+      setState(() {
+        _overrides[current.unitNumber] = _copy(current, status: nextStatus);
+      });
+      showAppSnack(context, 'Apartment administration activated');
+      return;
+    }
+    try {
+      await AppApiService.instance.updateApartmentUnitStatus(
+        unitId: current.id!,
+        status: nextStatus,
+      );
+      if (!mounted) return;
+      _reload();
+      showAppSnack(context, 'Apartment administration activated');
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
   Future<void> _viewUnit(ApartmentUnitItem? unit) async {
@@ -707,63 +698,106 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
     );
   }
 
-  void _approveUnit(ApartmentUnitItem? unit) {
-    final current =
-        _requireSelected(unit, 'Select an apartment unit to approve.');
-    if (current == null) return;
-    setState(() {
-      _overrides[current.unitNumber] = _copy(current,
-          status: current.residentName == null ? 'Vacant' : 'Occupied');
-    });
-    showAppSnack(context, 'Apartment administration approved');
-  }
-
-  void _rejectUnit(ApartmentUnitItem? unit) {
-    final current =
-        _requireSelected(unit, 'Select an apartment unit to reject.');
-    if (current == null) return;
-    setState(() {
-      _overrides[current.unitNumber] = _copy(current, status: 'Rejected');
-    });
-    showAppSnack(context, 'Apartment administration rejected');
-  }
-
   Future<void> _assignUnit(ApartmentUnitItem? unit) async {
     final current =
         _requireSelected(unit, 'Select an apartment unit to assign.');
     if (current == null) return;
-    final residentController =
-        TextEditingController(text: current.residentName ?? '');
+    final residents = (await AppApiService.instance.fetchResidents())
+        .where((resident) => resident.id != null)
+        .toList()
+      ..sort((left, right) => left.name.compareTo(right.name));
+    if (!mounted) return;
+    if (residents.isEmpty) {
+      showAppSnack(context, 'No resident records available for assignment.');
+      return;
+    }
+    final initialMatches =
+        residents.where((resident) => resident.name == current.residentName);
+    ResidentItem? selectedResident =
+        initialMatches.isEmpty ? null : initialMatches.first;
     await showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Assign Apartment Administration: ${current.unitNumber}'),
-        content: TextField(
-            controller: residentController,
-            decoration: const InputDecoration(labelText: 'Resident Name')),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              setState(() {
-                _overrides[current.unitNumber] = _copy(
-                  current,
-                  residentName: residentController.text.trim().isEmpty
-                      ? null
-                      : residentController.text.trim(),
-                  status: residentController.text.trim().isEmpty
-                      ? 'Vacant'
-                      : 'Assigned',
-                );
-              });
-              Navigator.pop(dialogContext);
-              showAppSnack(context, 'Apartment administration assigned');
-            },
-            child: const Text('Assign'),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text('Assign Apartment Administration: ${current.unitNumber}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownButtonFormField<int?>(
+                initialValue: selectedResident?.id,
+                decoration: const InputDecoration(labelText: 'Resident'),
+                items: [
+                  const DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text('Leave unassigned'),
+                  ),
+                  ...residents.map(
+                    (resident) => DropdownMenuItem<int?>(
+                      value: resident.id,
+                      child: Text('${resident.name} • ${resident.unit}'),
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  final matches =
+                      residents.where((resident) => resident.id == value);
+                  setDialogState(() {
+                    selectedResident = matches.isEmpty ? null : matches.first;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Select from the actual resident list instead of entering a free-text name.',
+                style: Theme.of(dialogContext).textTheme.bodySmall,
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel')),
+            FilledButton(
+              onPressed: () async {
+                final nextResident = selectedResident?.name;
+                final nextStatus = nextResident == null ? 'Vacant' : 'Assigned';
+                if (current.id == null) {
+                  setState(() {
+                    _overrides[current.unitNumber] = _copy(
+                      current,
+                      residentName: nextResident,
+                      status: nextStatus,
+                    );
+                  });
+                  Navigator.pop(dialogContext);
+                  showAppSnack(context, 'Apartment administration assigned');
+                  return;
+                }
+                try {
+                  await AppApiService.instance.updateApartmentUnit(
+                    unitId: current.id!,
+                    unitNumber: current.unitNumber,
+                    tower: current.tower,
+                    unitType: current.unitType,
+                    occupancyStatus: nextStatus,
+                    residentName: nextResident,
+                    balance: current.balance,
+                  );
+                  if (!dialogContext.mounted || !mounted) return;
+                  Navigator.pop(dialogContext);
+                  _reload();
+                  showAppSnack(context, 'Apartment administration assigned');
+                } catch (error) {
+                  if (!dialogContext.mounted || !mounted) return;
+                  showAppSnack(
+                      context, error.toString().replaceFirst('Exception: ', ''));
+                }
+              },
+              child: const Text('Assign'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -832,7 +866,7 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
   Future<void> _importUnits() async {
     final controller = TextEditingController(
         text:
-            '701,Skyview Tower,Duplex,Pending Approval,,0\n702,Ocean Tower,Studio,Vacant,,0');
+            '701,Skyview Tower,Duplex,Assigned,Sarah Jenkins,0\n702,Ocean Tower,Studio,Vacant,,0');
     String? error;
     await showDialog(
       context: context,
@@ -954,9 +988,9 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
   }
 
   Future<void> _showMonitoring(List<ApartmentUnitItem> units) async {
-    final pending =
-        units.where((u) => u.occupancyStatus == 'Pending Approval').length;
-    final rejected = units.where((u) => u.occupancyStatus == 'Rejected').length;
+    final assigned =
+        units.where((u) => u.occupancyStatus == 'Assigned').length;
+    final vacant = units.where((u) => u.occupancyStatus == 'Vacant').length;
     await showModalBottomSheet(
       context: context,
       showDragHandle: true,
@@ -975,8 +1009,8 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                     'Live monitoring: ${_liveMonitoring ? 'Enabled' : 'Disabled'}'),
                 Text(
                     'Email notifications: ${_emailNotifications ? 'Enabled' : 'Disabled'}'),
-                Text('Pending approvals: $pending'),
-                Text('Rejected records: $rejected'),
+                Text('Assigned units: $assigned'),
+                Text('Vacant units: $vacant'),
               ],
             ),
           ),
@@ -991,7 +1025,7 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
     content.writeln(
         'occupied_units,${units.where((u) => u.occupancyStatus == 'Occupied').length}');
     content.writeln(
-        'pending_approvals,${units.where((u) => u.occupancyStatus == 'Pending Approval').length}');
+        'assigned_units,${units.where((u) => u.occupancyStatus == 'Assigned').length}');
     content.writeln('scheduled_actions,${_schedules.length}');
     await DownloadService.saveCsvFile(
         filename: 'apartment_administration_pack', content: content.toString());
@@ -1046,13 +1080,6 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                 Text('Configure Apartment Administration',
                     style: Theme.of(sheetContext).textTheme.titleLarge),
                 const SizedBox(height: 12),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: _autoApprove,
-                  title: const Text('Auto approve new records'),
-                  onChanged: (value) =>
-                      setModalState(() => _autoApprove = value),
-                ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: _emailNotifications,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_i18n.dart';
 import '../models/app_models.dart';
@@ -20,7 +21,11 @@ class _ResidentSecurityScreenState extends State<ResidentSecurityScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _historyFuture = AppApiService.instance.fetchSecurityHistory(
+    _historyFuture = _loadHistory();
+  }
+
+  Future<List<SecurityLog>> _loadHistory() {
+    return AppApiService.instance.fetchSecurityHistory(
       userId: context.read<AuthProvider>().currentUserId,
       audience: 'resident',
     );
@@ -36,10 +41,7 @@ class _ResidentSecurityScreenState extends State<ResidentSecurityScreen> {
         ShellAction(
           icon: Icons.refresh_rounded,
           onPressed: () => setState(() {
-            _historyFuture = AppApiService.instance.fetchSecurityHistory(
-              userId: context.read<AuthProvider>().currentUserId,
-              audience: 'resident',
-            );
+            _historyFuture = _loadHistory();
           }),
         ),
       ],
@@ -82,14 +84,7 @@ class _ResidentSecurityScreenState extends State<ResidentSecurityScreen> {
                     label: const Text('Report Incident'),
                   ),
                   OutlinedButton.icon(
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (dialogContext) => AlertDialog(
-                        title: Text(context.tr('Guard Desk')),
-                        content: Text(context.tr('Call extension 100 or use the lobby intercom for immediate assistance.')),
-                        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(context.t('close')))],
-                      ),
-                    ),
+                    onPressed: _callDesk,
                     icon: const Icon(Icons.support_agent_rounded),
                     label: Text(context.tr('Call Desk')),
                   ),
@@ -141,9 +136,34 @@ class _ResidentSecurityScreenState extends State<ResidentSecurityScreen> {
     if (mounted) {
       showAppSnack(context, 'SOS alert sent');
       setState(() {
-        _historyFuture = AppApiService.instance.fetchSecurityHistory(userId: auth.currentUserId, audience: 'resident');
+        _historyFuture = _loadHistory();
       });
     }
+  }
+
+  Future<void> _callDesk() async {
+    final callUri = Uri.parse('tel:100');
+    final launched = await launchUrl(callUri);
+    if (!mounted) {
+      return;
+    }
+    if (launched) {
+      showAppSnack(context, 'Opening guard desk line');
+      return;
+    }
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.tr('Guard Desk')),
+        content: Text(context.tr('Call extension 100 or use the lobby intercom for immediate assistance.')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(context.t('close')),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _openIncidentForm(BuildContext context) async {
@@ -183,11 +203,16 @@ class _ResidentSecurityScreenState extends State<ResidentSecurityScreen> {
                     description: descriptionController.text.trim(),
                     zone: zoneController.text.trim(),
                     severity: severity,
+                    userId: context.read<AuthProvider>().currentUserId,
+                    audience: 'resident',
                   );
                   if (!mounted) {
                     return;
                   }
                   navigator.pop();
+                  setState(() {
+                    _historyFuture = _loadHistory();
+                  });
                   showAppSnack(this.context, 'Incident reported');
                 },
                 child: Text(context.tr('Submit Report')),

@@ -7,6 +7,16 @@ import 'package:intl/intl.dart';
 
 import '../models/app_models.dart';
 
+class ApiException implements Exception {
+  final int? statusCode;
+  final String message;
+
+  const ApiException(this.message, {this.statusCode});
+
+  @override
+  String toString() => message;
+}
+
 class AppApiService {
   AppApiService._();
 
@@ -318,6 +328,56 @@ class AppApiService {
     return _billFromJson(json);
   }
 
+  Future<BillItem> updateInvoice({
+    required int invoiceId,
+    int? residentId,
+    required String residentName,
+    String? residentEmail,
+    required String unitNumber,
+    required String title,
+    required String category,
+    required double amount,
+    required String dueDate,
+    String? description,
+  }) async {
+    final json = await _putJson(
+      billingBaseUri,
+      '/api/billing/invoices/$invoiceId',
+      {
+        'residentId': residentId,
+        'residentName': residentName,
+        'residentEmail': residentEmail,
+        'unitNumber': unitNumber,
+        'title': title,
+        'category': category,
+        'amount': amount,
+        'dueDate': DateFormat('yyyy-MM-dd').format(_parseDateInput(dueDate)),
+        'description': description,
+      },
+    );
+    return _billFromJson(json);
+  }
+
+  Future<BillItem> updateInvoiceStatus({
+    required int invoiceId,
+    required String status,
+  }) async {
+    final json = await _postJson(
+      billingBaseUri,
+      '/api/billing/invoices/$invoiceId/status',
+      {'status': status},
+    );
+    return _billFromJson(json);
+  }
+
+  Future<BillItem> deactivateInvoice(int invoiceId) async {
+    final json = await _deleteWithResponse(
+      billingBaseUri,
+      '/api/billing/invoices/$invoiceId',
+    );
+    return _billFromJson(json);
+  }
+
   Future<ApartmentStatsData> fetchApartmentStats() async {
     final json = await _getJson(billingBaseUri, '/api/apartments') as Map<String, dynamic>;
     final units = (json['units'] as List<dynamic>? ?? const []).map(
@@ -338,22 +398,169 @@ class AppApiService {
     );
   }
 
+  Future<ApartmentUnitItem> createApartmentUnit({
+    required String unitNumber,
+    required String tower,
+    required String unitType,
+    required String occupancyStatus,
+    String? residentName,
+    double balance = 0,
+  }) async {
+    final json = await _postJson(
+      billingBaseUri,
+      '/api/apartments',
+      {
+        'unitNumber': unitNumber,
+        'tower': tower,
+        'unitType': unitType,
+        'occupancyStatus': occupancyStatus,
+        'residentName': residentName,
+        'balance': balance,
+      },
+    );
+    return _apartmentUnitFromJson(json);
+  }
+
+  Future<ApartmentUnitItem> updateApartmentUnit({
+    required int unitId,
+    required String unitNumber,
+    required String tower,
+    required String unitType,
+    required String occupancyStatus,
+    String? residentName,
+    required double balance,
+  }) async {
+    final json = await _putJson(
+      billingBaseUri,
+      '/api/apartments/$unitId',
+      {
+        'unitNumber': unitNumber,
+        'tower': tower,
+        'unitType': unitType,
+        'occupancyStatus': occupancyStatus,
+        'residentName': residentName,
+        'balance': balance,
+      },
+    );
+    return _apartmentUnitFromJson(json);
+  }
+
+  Future<ApartmentUnitItem> updateApartmentUnitStatus({
+    required int unitId,
+    required String status,
+  }) async {
+    final json = await _postJson(
+      billingBaseUri,
+      '/api/apartments/$unitId/status',
+      {'status': status},
+    );
+    return _apartmentUnitFromJson(json);
+  }
+
+  Future<ApartmentUnitItem> deactivateApartmentUnit(int unitId) async {
+    final json = await _deleteWithResponse(
+      billingBaseUri,
+      '/api/apartments/$unitId',
+    );
+    return _apartmentUnitFromJson(json);
+  }
+
   Future<List<MaintenanceFacility>> fetchFacilities() async {
     final json = await _getJson(facilityBaseUri, '/api/facilities') as Map<String, dynamic>;
-    final facilities = (json['facilities'] as List<dynamic>? ?? const []).map((item) {
-      final logs = (item['logs'] as List<dynamic>? ?? const []).map((log) => log['note'] as String? ?? '').toList();
-      return MaintenanceFacility(
-        id: item['id'] as int?,
-        name: item['name'] as String? ?? '',
-        status: item['status'] as String? ?? '',
-        lastCheck: _formatDateTime(item['lastCheckAt']),
-        health: (item['health'] as num?)?.toInt() ?? 0,
-        logs: logs,
-        area: item['area'] as String?,
-        icon: item['icon'] as String?,
-      );
-    }).toList();
+    final facilities =
+        (json['facilities'] as List<dynamic>? ?? const []).map(_facilityFromJson).toList();
     return facilities;
+  }
+
+  Future<MaintenanceFacility> createFacility({
+    required String name,
+    required String area,
+    required String status,
+    required int health,
+    String? icon,
+    String? description,
+    String serviceType = 'shared',
+    String bookingMode = 'timeslot',
+    double oneTimePrice = 0,
+    double monthlyPrice = 0,
+    double yearlyPrice = 0,
+    String? slotLayout,
+  }) async {
+    final json = await _postJson(
+      facilityBaseUri,
+      '/api/facilities',
+      {
+        'name': name,
+        'area': area,
+        'status': status,
+        'health': health,
+        'icon': icon,
+        'description': description,
+        'serviceType': serviceType,
+        'bookingMode': bookingMode,
+        'oneTimePrice': oneTimePrice,
+        'monthlyPrice': monthlyPrice,
+        'yearlyPrice': yearlyPrice,
+        'slotLayout': slotLayout,
+      },
+    );
+    return _facilityFromJson(json);
+  }
+
+  Future<MaintenanceFacility> updateFacility({
+    required int facilityId,
+    required String name,
+    required String area,
+    required String status,
+    required int health,
+    String? icon,
+    String? description,
+    required String serviceType,
+    required String bookingMode,
+    required double oneTimePrice,
+    required double monthlyPrice,
+    required double yearlyPrice,
+    String? slotLayout,
+  }) async {
+    final json = await _putJson(
+      facilityBaseUri,
+      '/api/facilities/$facilityId',
+      {
+        'name': name,
+        'area': area,
+        'status': status,
+        'health': health,
+        'icon': icon,
+        'description': description,
+        'serviceType': serviceType,
+        'bookingMode': bookingMode,
+        'oneTimePrice': oneTimePrice,
+        'monthlyPrice': monthlyPrice,
+        'yearlyPrice': yearlyPrice,
+        'slotLayout': slotLayout,
+      },
+    );
+    return _facilityFromJson(json);
+  }
+
+  Future<MaintenanceFacility> updateFacilityStatus({
+    required int facilityId,
+    required String status,
+  }) async {
+    final json = await _postJson(
+      facilityBaseUri,
+      '/api/facilities/$facilityId/status',
+      {'status': status},
+    );
+    return _facilityFromJson(json);
+  }
+
+  Future<MaintenanceFacility> deactivateFacility(int facilityId) async {
+    final json = await _deleteWithResponse(
+      facilityBaseUri,
+      '/api/facilities/$facilityId',
+    );
+    return _facilityFromJson(json);
   }
 
   Future<void> addFacilityLog({
@@ -384,6 +591,9 @@ class AppApiService {
             time: '${_formatDate(item['bookingDate'])} - ${item['timeSlot'] ?? ''}',
             location: item['facilityName'] as String? ?? '',
             status: item['status'] as String? ?? 'Confirmed',
+            slotCode: item['slotCode'] as String?,
+            planType: item['planType'] as String?,
+            amount: _toDouble(item['amount']),
           ),
         )
         .toList();
@@ -394,6 +604,8 @@ class AppApiService {
     required int facilityId,
     required DateTime bookingDate,
     required String timeSlot,
+    String? slotCode,
+    String? planType,
   }) async {
     final json = await _postJson(
       facilityBaseUri,
@@ -402,6 +614,8 @@ class AppApiService {
         'facilityId': facilityId,
         'bookingDate': DateFormat('yyyy-MM-dd').format(bookingDate),
         'timeSlot': timeSlot,
+        'slotCode': slotCode,
+        'planType': planType,
       },
     );
     return BookingItem(
@@ -411,6 +625,9 @@ class AppApiService {
       time: '${_formatDate(json['bookingDate'])} - ${json['timeSlot'] ?? ''}',
       location: json['facilityName'] as String? ?? '',
       status: json['status'] as String? ?? 'Confirmed',
+      slotCode: json['slotCode'] as String?,
+      planType: json['planType'] as String?,
+      amount: _toDouble(json['amount']),
     );
   }
 
@@ -441,6 +658,8 @@ class AppApiService {
     required String description,
     required String zone,
     required String severity,
+    int? userId,
+    String? audience,
   }) async {
     final json = await _postJson(
       securityBaseUri,
@@ -450,7 +669,53 @@ class AppApiService {
         'description': description,
         'zone': zone,
         'severity': severity,
+        'userId': userId,
+        'audience': audience,
       },
+    );
+    return _incidentFromJson(json);
+  }
+
+  Future<IncidentItem> updateIncident({
+    required int incidentId,
+    required String title,
+    required String description,
+    required String zone,
+    required String status,
+    required String severity,
+    String? assignedStaffName,
+  }) async {
+    final json = await _putJson(
+      securityBaseUri,
+      '/api/security/incidents/$incidentId',
+      {
+        'title': title,
+        'description': description,
+        'zone': zone,
+        'status': status,
+        'severity': severity,
+        'assignedStaffName': assignedStaffName,
+      },
+    );
+    return _incidentFromJson(json);
+  }
+
+  Future<IncidentItem> updateIncidentStatus({
+    required int incidentId,
+    required String status,
+  }) async {
+    final json = await _postJson(
+      securityBaseUri,
+      '/api/security/incidents/$incidentId/status',
+      {'status': status},
+    );
+    return _incidentFromJson(json);
+  }
+
+  Future<IncidentItem> deactivateIncident(int incidentId) async {
+    final json = await _deleteWithResponse(
+      securityBaseUri,
+      '/api/security/incidents/$incidentId',
     );
     return _incidentFromJson(json);
   }
@@ -498,6 +763,9 @@ class AppApiService {
     final tasks = (json['tasks'] as List<dynamic>? ?? const []).map(
       (item) => TaskItem(
         id: item['id'] as int?,
+        sourceId: item['sourceId'] as int?,
+        sourceType: item['sourceType'] as String?,
+        assignedStaffName: item['assignedStaffName'] as String?,
         title: item['title'] as String? ?? '',
         zone: item['zone'] as String? ?? '',
         priority: item['priority'] as String? ?? '',
@@ -510,6 +778,137 @@ class AppApiService {
       completedTasks: (json['completedTasks'] as num?)?.toInt() ?? 0,
       tasks: tasks,
     );
+  }
+
+  Future<TaskItem> createStaffTask({
+    required int assignedStaffId,
+    required String assignedStaffName,
+    required String title,
+    required String zone,
+    required String priority,
+    required String category,
+    required String sourceType,
+    int? sourceId,
+  }) async {
+    final json = await _postJson(
+      operationsBaseUri,
+      '/api/operations/tasks',
+      {
+        'assignedStaffId': assignedStaffId,
+        'assignedStaffName': assignedStaffName,
+        'title': title,
+        'zone': zone,
+        'priority': priority,
+        'category': category,
+        'sourceType': sourceType,
+        'sourceId': sourceId,
+      },
+    );
+    return TaskItem(
+      id: json['id'] as int?,
+      sourceId: json['sourceId'] as int?,
+      sourceType: json['sourceType'] as String?,
+      assignedStaffName: json['assignedStaffName'] as String?,
+      title: json['title'] as String? ?? '',
+      zone: json['zone'] as String? ?? '',
+      priority: json['priority'] as String? ?? 'Medium',
+      status: json['status'] as String? ?? 'Pending',
+      category: json['category'] as String?,
+    );
+  }
+
+  Future<List<CustomServiceRequestItem>> fetchCustomServiceRequests() async {
+    final json = await _getJson(operationsBaseUri, '/api/operations/custom-service-requests') as List<dynamic>;
+    return json.map(_customServiceRequestFromJson).toList();
+  }
+
+  Future<List<CustomServiceRequestItem>> fetchResidentCustomServiceRequests(int residentId) async {
+    final json = await _getJson(
+      operationsBaseUri,
+      '/api/operations/custom-service-requests/resident/$residentId',
+    ) as List<dynamic>;
+    return json.map(_customServiceRequestFromJson).toList();
+  }
+
+  Future<List<CustomServiceRequestItem>> fetchStaffCustomServiceRequests(int staffId) async {
+    final json = await _getJson(
+      operationsBaseUri,
+      '/api/operations/custom-service-requests/staff/$staffId',
+    ) as List<dynamic>;
+    return json.map(_customServiceRequestFromJson).toList();
+  }
+
+  Future<CustomServiceRequestItem> createCustomServiceRequest({
+    required int residentId,
+    required String residentName,
+    required String unitNumber,
+    required String title,
+    required String description,
+    required String zone,
+    String? preferredSchedule,
+  }) async {
+    final json = await _postJson(
+      operationsBaseUri,
+      '/api/operations/custom-service-requests',
+      {
+        'residentId': residentId,
+        'residentName': residentName,
+        'unitNumber': unitNumber,
+        'title': title,
+        'description': description,
+        'zone': zone,
+        'preferredSchedule': preferredSchedule,
+      },
+    );
+    return _customServiceRequestFromJson(json);
+  }
+
+  Future<CustomServiceRequestItem> assignCustomServiceRequest({
+    required int requestId,
+    required int staffId,
+    required String staffName,
+  }) async {
+    final json = await _postJson(
+      operationsBaseUri,
+      '/api/operations/custom-service-requests/$requestId/assign',
+      {
+        'staffId': staffId,
+        'staffName': staffName,
+      },
+    );
+    return _customServiceRequestFromJson(json);
+  }
+
+  Future<CustomServiceRequestItem> quoteCustomServiceRequest({
+    required int requestId,
+    required double quotedPrice,
+    String? quoteNote,
+  }) async {
+    final json = await _postJson(
+      operationsBaseUri,
+      '/api/operations/custom-service-requests/$requestId/quote',
+      {
+        'quotedPrice': quotedPrice,
+        'quoteNote': quoteNote,
+      },
+    );
+    return _customServiceRequestFromJson(json);
+  }
+
+  Future<CustomServiceRequestItem> respondCustomServiceRequest({
+    required int requestId,
+    required String decision,
+    String? note,
+  }) async {
+    final json = await _postJson(
+      operationsBaseUri,
+      '/api/operations/custom-service-requests/$requestId/resident-decision',
+      {
+        'decision': decision,
+        'note': note,
+      },
+    );
+    return _customServiceRequestFromJson(json);
   }
 
   Future<dynamic> _getJson(Uri base, String path) async {
@@ -557,6 +956,18 @@ class AppApiService {
     );
   }
 
+  Future<dynamic> _deleteWithResponse(Uri base, String path) async {
+    return _sendWithFallback(
+      base,
+      (uri) => _client
+          .delete(
+            uri.resolve(path),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 8)),
+    );
+  }
+
   Future<dynamic> _sendWithFallback(
     Uri primaryBase,
     Future<http.Response> Function(Uri base) send,
@@ -587,8 +998,22 @@ class AppApiService {
       return jsonDecode(response.body);
     }
     final responseBody = response.body.trim();
-    final message = responseBody.isEmpty ? 'Request failed: ${response.statusCode}' : 'Request failed: ${response.statusCode} - $responseBody';
-    throw Exception(message);
+    String message = 'Request failed: ${response.statusCode}';
+    if (responseBody.isNotEmpty) {
+      try {
+        final parsed = jsonDecode(responseBody);
+        if (parsed is Map<String, dynamic>) {
+          message = (parsed['message'] as String?) ??
+              (parsed['error'] as String?) ??
+              responseBody;
+        } else {
+          message = responseBody;
+        }
+      } catch (_) {
+        message = responseBody;
+      }
+    }
+    throw ApiException(message, statusCode: response.statusCode);
   }
 
   static Uri _serviceUri(String serviceOverride, int port) {
@@ -683,6 +1108,24 @@ class AppApiService {
     return 'http://$trimmed';
   }
 
+  DateTime _parseDateInput(String value) {
+    final trimmed = value.trim();
+    final formats = [
+      DateFormat('yyyy-MM-dd'),
+      DateFormat('MMM d, yyyy'),
+      DateFormat('d/M/yyyy'),
+      DateFormat('M/d/yyyy'),
+    ];
+    for (final format in formats) {
+      try {
+        return format.parseStrict(trimmed);
+      } catch (_) {
+        continue;
+      }
+    }
+    return DateTime.now();
+  }
+
   SessionUser _sessionUserFromJson(Map<String, dynamic> json) {
     return SessionUser(
       id: (json['id'] as num?)?.toInt() ?? 0,
@@ -751,6 +1194,48 @@ class AppApiService {
     );
   }
 
+  ApartmentUnitItem _apartmentUnitFromJson(dynamic item) {
+    final json = item as Map<String, dynamic>;
+    return ApartmentUnitItem(
+      id: (json['id'] as num?)?.toInt(),
+      unitNumber: json['unitNumber'] as String? ?? '',
+      tower: json['tower'] as String? ?? '',
+      unitType: json['unitType'] as String? ?? '',
+      occupancyStatus: json['occupancyStatus'] as String? ?? '',
+      residentName: json['residentName'] as String?,
+      balance: _toDouble(json['balance']),
+    );
+  }
+
+  MaintenanceFacility _facilityFromJson(dynamic item) {
+    final json = item as Map<String, dynamic>;
+    final logs = (json['logs'] as List<dynamic>? ?? const [])
+        .map((log) => log['note'] as String? ?? '')
+        .toList();
+    return MaintenanceFacility(
+      id: json['id'] as int?,
+      name: json['name'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+      lastCheck: _formatDateTime(json['lastCheckAt']),
+      health: (json['health'] as num?)?.toInt() ?? 0,
+      logs: logs,
+      area: json['area'] as String?,
+      icon: json['icon'] as String?,
+      description: json['description'] as String?,
+      serviceType: json['serviceType'] as String? ?? 'shared',
+      bookingMode: json['bookingMode'] as String? ?? 'timeslot',
+      oneTimePrice: _toDouble(json['oneTimePrice']),
+      monthlyPrice: _toDouble(json['monthlyPrice']),
+      yearlyPrice: _toDouble(json['yearlyPrice']),
+      slotCodes: (json['slotCodes'] as List<dynamic>? ?? const [])
+          .map((slot) => slot.toString())
+          .toList(),
+      occupiedSlotCodes: (json['occupiedSlotCodes'] as List<dynamic>? ?? const [])
+          .map((slot) => slot.toString())
+          .toList(),
+    );
+  }
+
   IncidentItem _incidentFromJson(dynamic item) {
     final json = item as Map<String, dynamic>;
     return IncidentItem(
@@ -774,6 +1259,27 @@ class AppApiService {
       time: _formatDateTime(json['accessTime']),
       status: json['status'] as String? ?? '',
       audience: json['audience'] as String?,
+    );
+  }
+
+  CustomServiceRequestItem _customServiceRequestFromJson(dynamic item) {
+    final json = item as Map<String, dynamic>;
+    return CustomServiceRequestItem(
+      id: (json['id'] as num?)?.toInt(),
+      residentId: (json['residentId'] as num?)?.toInt() ?? 0,
+      residentName: json['residentName'] as String? ?? '',
+      unitNumber: json['unitNumber'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      zone: json['zone'] as String? ?? '',
+      preferredSchedule: json['preferredSchedule'] as String?,
+      status: json['status'] as String? ?? '',
+      assignedStaffId: (json['assignedStaffId'] as num?)?.toInt(),
+      assignedStaffName: json['assignedStaffName'] as String?,
+      quotedPrice: json['quotedPrice'] == null ? null : _toDouble(json['quotedPrice']),
+      quoteNote: json['quoteNote'] as String?,
+      residentDecisionNote: json['residentDecisionNote'] as String?,
+      createdAt: _formatDateTime(json['createdAt']),
     );
   }
 

@@ -160,6 +160,8 @@ class _ResetPasswordFlowScreenState extends State<ResetPasswordFlowScreen> {
           confirmPasswordController: _confirmPasswordController,
           showNewPassword: _showNewPassword,
           showConfirmPassword: _showConfirmPassword,
+          onPasswordChanged: () => setState(() {}),
+          onConfirmPasswordChanged: () => setState(() {}),
           onToggleNewPassword: () => setState(() => _showNewPassword = !_showNewPassword),
           onToggleConfirmPassword: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
         );
@@ -541,6 +543,8 @@ class _SetPasswordStep extends StatelessWidget {
   final TextEditingController confirmPasswordController;
   final bool showNewPassword;
   final bool showConfirmPassword;
+  final VoidCallback onPasswordChanged;
+  final VoidCallback onConfirmPasswordChanged;
   final VoidCallback onToggleNewPassword;
   final VoidCallback onToggleConfirmPassword;
 
@@ -551,6 +555,8 @@ class _SetPasswordStep extends StatelessWidget {
     required this.confirmPasswordController,
     required this.showNewPassword,
     required this.showConfirmPassword,
+    required this.onPasswordChanged,
+    required this.onConfirmPasswordChanged,
     required this.onToggleNewPassword,
     required this.onToggleConfirmPassword,
   });
@@ -558,8 +564,29 @@ class _SetPasswordStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final password = newPasswordController.text;
-    final strengthLabel = password.length >= 12 ? 'Strong' : password.length >= 8 ? 'Good' : 'Weak';
-    final strengthSegments = (password.length / 3).clamp(1, 4).toInt();
+    final hasUpper = password.contains(RegExp(r'[A-Z]'));
+    final hasLower = password.contains(RegExp(r'[a-z]'));
+    final hasDigit = password.contains(RegExp(r'\d'));
+    final hasSpecial = password.contains(RegExp(r'[^A-Za-z0-9]'));
+    var strengthSegments = 0;
+    if (password.isNotEmpty) strengthSegments = 1;
+    if (password.length >= 8) strengthSegments = 2;
+    if (password.length >= 10 && hasUpper && hasLower) strengthSegments = 3;
+    if (password.length >= 12 && hasUpper && hasLower && hasDigit && hasSpecial) {
+      strengthSegments = 4;
+    }
+    final strengthLabel = switch (strengthSegments) {
+      4 => 'Strong',
+      3 => 'Good',
+      2 => 'Fair',
+      _ => 'Weak',
+    };
+    final strengthColor = switch (strengthSegments) {
+      4 => const Color(0xFF22C55E),
+      3 => AppTheme.brand,
+      2 => const Color(0xFFF59E0B),
+      _ => const Color(0xFFEF4444),
+    };
 
     return InfoCard(
       child: Column(
@@ -575,6 +602,7 @@ class _SetPasswordStep extends StatelessWidget {
           TextField(
             controller: newPasswordController,
             obscureText: !showNewPassword,
+            onChanged: (_) => onPasswordChanged(),
             decoration: InputDecoration(
               labelText: context.t('new_password'),
               prefixIcon: const Icon(Icons.lock_outline_rounded),
@@ -591,7 +619,7 @@ class _SetPasswordStep extends StatelessWidget {
               const Spacer(),
               Text(
                 strengthLabel,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppTheme.brand),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(color: strengthColor),
               ),
             ],
           ),
@@ -604,7 +632,7 @@ class _SetPasswordStep extends StatelessWidget {
                   margin: EdgeInsets.only(right: index == 3 ? 0 : 8),
                   height: 6,
                   decoration: BoxDecoration(
-                    color: active ? AppTheme.brand : const Color(0xFFDDE7F4),
+                    color: active ? strengthColor : const Color(0xFFDDE7F4),
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
@@ -615,6 +643,7 @@ class _SetPasswordStep extends StatelessWidget {
           TextField(
             controller: confirmPasswordController,
             obscureText: !showConfirmPassword,
+            onChanged: (_) => onConfirmPasswordChanged(),
             decoration: InputDecoration(
               labelText: context.tr('Confirm Password'),
               prefixIcon: const Icon(Icons.verified_user_rounded),

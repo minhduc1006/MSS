@@ -25,10 +25,13 @@ public class AuthDomainService {
 
     public AuthDtos.UserResponse login(AuthDtos.LoginRequest request) {
         AppUser user = resolveUserByEmail(request.email(), request.role())
-            .filter(found -> found.getPassword().equals(request.password()))
-            .filter(found -> found.getRole().equalsIgnoreCase(request.role()))
-            .filter(found -> !isDeactivated(found.getStatus()))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+        if (!user.getPassword().equals(request.password())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        }
+        if (!user.getRole().equalsIgnoreCase(request.role()) || isDeactivated(user.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
         return toUser(user);
     }
 

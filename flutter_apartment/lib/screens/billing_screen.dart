@@ -14,15 +14,12 @@ class BillingScreen extends StatefulWidget {
 }
 
 class _BillingScreenState extends State<BillingScreen> {
-  static const _filters = ['All', 'Paid', 'Pending', 'Overdue', 'Approved', 'Rejected', 'Assigned', 'Deactivated'];
+  static const _filters = ['All', 'Paid', 'Pending', 'Overdue', 'Deactivated'];
 
   late Future<BillingOverviewData> _overviewFuture;
   final _draftInvoices = <InvoiceItem>[];
   final _overrides = <String, InvoiceItem>{};
   final _hidden = <String>{};
-  final _assignments = <String, String>{};
-  final _notifications = <String, int>{};
-  final _schedules = <_BillingScheduleItem>[];
   final _searchController = TextEditingController();
   final _searchFocusNode = FocusNode();
 
@@ -52,7 +49,7 @@ class _BillingScreenState extends State<BillingScreen> {
   Widget build(BuildContext context) {
     return AppShell(
       title: 'Billing & Payment',
-      subtitle: 'Create, approve, notify, track, and manage invoice operations',
+      subtitle: 'Create and manage invoice operations',
       role: UserRole.admin,
       currentIndex: 2,
       leadingIcon: Icons.arrow_back_ios_new_rounded,
@@ -77,7 +74,7 @@ class _BillingScreenState extends State<BillingScreen> {
           final filtered = _filteredInvoices(invoices);
           final totalInvoiced = invoices.fold<double>(0, (sum, item) => sum + item.amount);
           final totalOutstanding = invoices.where((item) => item.status != 'Paid' && !_isDeactivated(item.status)).fold<double>(0, (sum, item) => sum + item.amount);
-          final activeInvoices = invoices.where((item) => item.status != 'Paid' && item.status != 'Rejected' && !_isDeactivated(item.status)).length;
+          final activeInvoices = invoices.where((item) => item.status != 'Paid' && !_isDeactivated(item.status)).length;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -137,10 +134,6 @@ class _BillingScreenState extends State<BillingScreen> {
                   ActionTile(label: 'Create', icon: Icons.add_card_rounded, onTap: _createInvoice, primary: true),
                   ActionTile(label: 'Search', icon: Icons.search_rounded, onTap: _focusSearch),
                   ActionTile(label: 'Export', icon: Icons.download_rounded, onTap: () => _exportInvoices(invoices)),
-                  ActionTile(label: 'Import', icon: Icons.upload_rounded, onTap: _importInvoices),
-                  ActionTile(label: 'Track', icon: Icons.track_changes_rounded, onTap: () => _trackInvoices(invoices)),
-                  ActionTile(label: 'Monitor', icon: Icons.monitor_heart_rounded, onTap: () => _monitorInvoices(invoices)),
-                  ActionTile(label: 'Generate', icon: Icons.auto_awesome_rounded, onTap: () => _generateInvoices(invoices)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -165,9 +158,6 @@ class _BillingScreenState extends State<BillingScreen> {
   Widget _invoiceCard(BuildContext context, InvoiceItem invoice) {
     final key = _invoiceKey(invoice);
     final active = key == _selectedInvoiceKey;
-    final scheduleCount = _schedules.where((item) => item.invoiceKey == key).length;
-    final notificationCount = _notifications[key] ?? 0;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -186,7 +176,7 @@ class _BillingScreenState extends State<BillingScreen> {
                         ? Icons.check_circle_rounded
                         : invoice.status == 'Pending'
                             ? Icons.more_horiz_rounded
-                            : invoice.status == 'Rejected'
+                            : invoice.status == 'Overdue'
                                 ? Icons.cancel_rounded
                                 : Icons.receipt_long_rounded,
                     color: statusColor(invoice.status),
@@ -210,16 +200,6 @@ class _BillingScreenState extends State<BillingScreen> {
               ),
               const SizedBox(height: 12),
               Text(formatMoney(invoice.amount), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: const Color(0xFF172033))),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (_assignmentLabel(invoice) != null) _tag(context, Icons.badge_rounded, _assignmentLabel(invoice)!),
-                  _tag(context, Icons.event_note_rounded, scheduleCount == 0 ? 'No schedules' : '$scheduleCount schedules'),
-                  _tag(context, Icons.notifications_rounded, notificationCount == 0 ? 'No reminders' : '$notificationCount reminders'),
-                ],
-              ),
               const SizedBox(height: 14),
               Wrap(
                 spacing: 8,
@@ -231,35 +211,12 @@ class _BillingScreenState extends State<BillingScreen> {
                     _invoiceAction(context, icon: Icons.restart_alt_rounded, label: 'Activate', onTap: () => _activateInvoice(invoice))
                   else ...[
                     _invoiceAction(context, icon: Icons.delete_rounded, label: 'Delete', onTap: () => _deleteInvoice(invoice), destructive: true),
-                    _invoiceAction(context, icon: Icons.check_circle_rounded, label: 'Approve', onTap: () => _approveInvoice(invoice)),
-                    _invoiceAction(context, icon: Icons.cancel_rounded, label: 'Reject', onTap: () => _rejectInvoice(invoice)),
-                    _invoiceAction(context, icon: Icons.person_add_alt_1_rounded, label: 'Assign', onTap: () => _assignInvoice(invoice)),
-                    _invoiceAction(context, icon: Icons.event_available_rounded, label: 'Schedule', onTap: () => _scheduleInvoice(invoice)),
-                    _invoiceAction(context, icon: Icons.notifications_active_rounded, label: 'Notify', onTap: () => _notifyInvoice(invoice)),
                   ],
                 ],
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _tag(BuildContext context, IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F6FA),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: const Color(0xFF5B6577)),
-          const SizedBox(width: 6),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-        ],
       ),
     );
   }
@@ -306,13 +263,11 @@ class _BillingScreenState extends State<BillingScreen> {
   List<InvoiceItem> _filteredInvoices(List<InvoiceItem> invoices) {
     final query = _searchController.text.trim().toLowerCase();
     return invoices.where((invoice) {
-      final assignment = (_assignments[_invoiceKey(invoice)] ?? '').toLowerCase();
       final matchesQuery = query.isEmpty ||
           invoice.resident.toLowerCase().contains(query) ||
           invoice.unit.toLowerCase().contains(query) ||
           (invoice.title ?? '').toLowerCase().contains(query) ||
-          (invoice.category ?? '').toLowerCase().contains(query) ||
-          assignment.contains(query);
+          (invoice.category ?? '').toLowerCase().contains(query);
       final matchesFilter = _filter == 'All' || invoice.status == _filter;
       return matchesQuery && matchesFilter;
     }).toList()
@@ -332,8 +287,6 @@ class _BillingScreenState extends State<BillingScreen> {
   }
 
   String _invoiceKey(InvoiceItem invoice) => invoice.id?.toString() ?? '${invoice.resident}|${invoice.unit}|${invoice.date}';
-
-  String? _assignmentLabel(InvoiceItem invoice) => _assignments[_invoiceKey(invoice)];
 
   int _deactivatedSort(String status) => _isDeactivated(status) ? 1 : 0;
 
@@ -534,20 +487,48 @@ class _BillingScreenState extends State<BillingScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
             FilledButton(
-              onPressed: () {
-                setState(() {
-                  _overrides[_invoiceKey(current)] = _copyInvoice(
-                    current,
+              onPressed: () async {
+                if (current.id == null) {
+                  setState(() {
+                    _overrides[_invoiceKey(current)] = _copyInvoice(
+                      current,
+                      title: titleController.text.trim(),
+                      resident: residentController.text.trim(),
+                      unit: unitController.text.trim(),
+                      amount: double.tryParse(amountController.text.trim()) ?? current.amount,
+                      date: dateController.text.trim(),
+                      status: status,
+                    );
+                  });
+                  Navigator.pop(dialogContext);
+                  showAppSnack(context, 'Billing & payment updated');
+                  return;
+                }
+                try {
+                  await AppApiService.instance.updateInvoice(
+                    invoiceId: current.id!,
+                    residentId: current.residentId,
+                    residentName: residentController.text.trim(),
+                    unitNumber: unitController.text.trim(),
                     title: titleController.text.trim(),
-                    resident: residentController.text.trim(),
-                    unit: unitController.text.trim(),
+                    category: current.category ?? 'service',
                     amount: double.tryParse(amountController.text.trim()) ?? current.amount,
-                    date: dateController.text.trim(),
+                    dueDate: dateController.text.trim(),
+                    description: current.description,
+                  );
+                  await AppApiService.instance.updateInvoiceStatus(
+                    invoiceId: current.id!,
                     status: status,
                   );
-                });
-                Navigator.pop(dialogContext);
-                showAppSnack(context, 'Billing & payment updated');
+                  if (!dialogContext.mounted || !mounted) return;
+                  Navigator.pop(dialogContext);
+                  _reload();
+                  showAppSnack(context, 'Billing & payment updated');
+                } catch (error) {
+                  if (!dialogContext.mounted || !mounted) return;
+                  showAppSnack(
+                      context, error.toString().replaceFirst('Exception: ', ''));
+                }
               },
               child: const Text('Save'),
             ),
@@ -572,24 +553,54 @@ class _BillingScreenState extends State<BillingScreen> {
       ),
     );
     if (shouldDelete != true) return;
-    if (!mounted) return;
-    setState(() {
-      final key = _invoiceKey(current);
-      _overrides[key] = _copyInvoice(current, status: 'Deactivated');
-      if (_selectedInvoiceKey == key) {
-        _selectedInvoiceKey = null;
+    if (current.id == null) {
+      if (!mounted) return;
+      setState(() {
+        final key = _invoiceKey(current);
+        _overrides[key] = _copyInvoice(current, status: 'Deactivated');
+        if (_selectedInvoiceKey == key) {
+          _selectedInvoiceKey = null;
+        }
+      });
+      showAppSnack(context, 'Billing & payment deactivated');
+      return;
+    }
+    try {
+      await AppApiService.instance.deactivateInvoice(current.id!);
+      if (!mounted) return;
+      if (_selectedInvoiceKey == _invoiceKey(current)) {
+        setState(() => _selectedInvoiceKey = null);
       }
-    });
-    showAppSnack(context, 'Billing & payment deactivated');
+      _reload();
+      showAppSnack(context, 'Billing & payment deactivated');
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
-  void _activateInvoice(InvoiceItem? invoice) {
+  Future<void> _activateInvoice(InvoiceItem? invoice) async {
     final current = _requireSelected(invoice, 'Select an invoice to activate.');
     if (current == null) return;
-    setState(() {
-      _overrides[_invoiceKey(current)] = _copyInvoice(current, status: 'Pending');
-    });
-    showAppSnack(context, 'Billing & payment activated');
+    if (current.id == null) {
+      setState(() {
+        _overrides[_invoiceKey(current)] = _copyInvoice(current, status: 'Pending');
+      });
+      showAppSnack(context, 'Billing & payment activated');
+      return;
+    }
+    try {
+      await AppApiService.instance.updateInvoiceStatus(
+        invoiceId: current.id!,
+        status: 'Pending',
+      );
+      if (!mounted) return;
+      _reload();
+      showAppSnack(context, 'Billing & payment activated');
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnack(context, error.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
   Future<void> _viewInvoice(InvoiceItem? invoice) async {
@@ -609,261 +620,21 @@ class _BillingScreenState extends State<BillingScreen> {
             Text('Status: ${current.status}'),
             Text('Due: ${current.date}'),
             Text('Category: ${current.category ?? '-'}'),
-            Text('Assigned to: ${_assignmentLabel(current) ?? 'Unassigned'}'),
           ],
         ),
         actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close'))],
-      ),
-    );
-  }
-
-  void _approveInvoice(InvoiceItem? invoice) {
-    final current = _requireSelected(invoice, 'Select an invoice to approve.');
-    if (current == null) return;
-    setState(() {
-      _overrides[_invoiceKey(current)] = _copyInvoice(current, status: 'Approved');
-    });
-    showAppSnack(context, 'Billing & payment approved');
-  }
-
-  void _rejectInvoice(InvoiceItem? invoice) {
-    final current = _requireSelected(invoice, 'Select an invoice to reject.');
-    if (current == null) return;
-    setState(() {
-      _overrides[_invoiceKey(current)] = _copyInvoice(current, status: 'Rejected');
-    });
-    showAppSnack(context, 'Billing & payment rejected');
-  }
-
-  Future<void> _assignInvoice(InvoiceItem? invoice) async {
-    final current = _requireSelected(invoice, 'Select an invoice to assign.');
-    if (current == null) return;
-    final controller = TextEditingController(text: _assignments[_invoiceKey(current)] ?? 'Billing Operations');
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Assign Billing & Payment'),
-        content: TextField(controller: controller, decoration: const InputDecoration(labelText: 'Assigned Team')),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              setState(() {
-                _assignments[_invoiceKey(current)] = controller.text.trim();
-                _overrides[_invoiceKey(current)] = _copyInvoice(current, status: 'Assigned');
-              });
-              Navigator.pop(dialogContext);
-              showAppSnack(context, 'Billing & payment assigned');
-            },
-            child: const Text('Assign'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _scheduleInvoice(InvoiceItem? invoice) async {
-    final current = _requireSelected(invoice, 'Select an invoice to schedule.');
-    if (current == null) return;
-    final titleController = TextEditingController(text: 'Payment reminder');
-    final dateController = TextEditingController(text: 'Tomorrow 9:00 AM');
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Schedule Billing & Payment'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Schedule Title')),
-            const SizedBox(height: 12),
-            TextField(controller: dateController, decoration: const InputDecoration(labelText: 'Date / Slot')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              setState(() {
-                _schedules.add(_BillingScheduleItem(invoiceKey: _invoiceKey(current), title: titleController.text.trim(), dateLabel: dateController.text.trim()));
-              });
-              Navigator.pop(dialogContext);
-              showAppSnack(context, 'Billing & payment scheduled');
-            },
-            child: const Text('Schedule'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _notifyInvoice(InvoiceItem? invoice) async {
-    final current = _requireSelected(invoice, 'Select an invoice to notify.');
-    if (current == null) return;
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Notify Billing & Payment'),
-        content: Text('Queue reminder for ${current.resident} about ${current.title ?? 'invoice'}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              final key = _invoiceKey(current);
-              setState(() {
-                _notifications[key] = (_notifications[key] ?? 0) + 1;
-              });
-              Navigator.pop(dialogContext);
-              showAppSnack(context, 'Billing & payment reminder queued');
-            },
-            child: const Text('Notify'),
-          ),
-        ],
       ),
     );
   }
 
   Future<void> _exportInvoices(List<InvoiceItem> invoices) async {
-    final content = StringBuffer('Resident,Unit,Amount,Status,Due Date,Assigned To,Notifications\n');
+    final content = StringBuffer('Resident,Unit,Amount,Status,Due Date\n');
     for (final invoice in invoices) {
-      final key = _invoiceKey(invoice);
-      content.writeln('${invoice.resident},${invoice.unit},${invoice.amount},${invoice.status},${invoice.date},${_assignments[key] ?? ''},${_notifications[key] ?? 0}');
+      content.writeln('${invoice.resident},${invoice.unit},${invoice.amount},${invoice.status},${invoice.date}');
     }
     await DownloadService.saveCsvFile(filename: 'billing_payment_export', content: content.toString());
     if (mounted) showAppSnack(context, 'Billing & payment exported');
   }
-
-  Future<void> _importInvoices() async {
-    final controller = TextEditingController(
-      text: 'Reserve Fund,John Doe,402,3200000,Next Friday,Pending\nSecurity Fee,Emma Reed,508,1800000,Tomorrow,Approved',
-    );
-    String? errorMessage;
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setModalState) => AlertDialog(
-          title: const Text('Import Billing & Payment'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('One invoice per line: Title,Resident,Unit,Amount (VNĐ),Due Date,Status'),
-                const SizedBox(height: 12),
-                TextField(controller: controller, maxLines: 6),
-                if (errorMessage != null) ...[
-                  const SizedBox(height: 12),
-                  Text(errorMessage!, style: Theme.of(dialogContext).textTheme.bodySmall?.copyWith(color: const Color(0xFFB91C1C))),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-            FilledButton(
-              onPressed: () {
-                try {
-                  final imported = <InvoiceItem>[];
-                  for (final line in controller.text.split('\n').map((item) => item.trim()).where((item) => item.isNotEmpty)) {
-                    final parts = line.split(',').map((item) => item.trim()).toList();
-                    if (parts.length != 6) {
-                      throw Exception('Each line must contain 6 comma-separated values.');
-                    }
-                    imported.add(
-                      InvoiceItem(
-                        title: parts[0],
-                        resident: parts[1],
-                        unit: parts[2],
-                        amount: double.tryParse(parts[3]) ?? 0,
-                        date: parts[4],
-                        status: parts[5],
-                      ),
-                    );
-                  }
-                  setState(() {
-                    _draftInvoices.addAll(imported);
-                    if (imported.isNotEmpty) {
-                      _selectedInvoiceKey = _invoiceKey(imported.first);
-                    }
-                  });
-                  Navigator.pop(dialogContext);
-                  showAppSnack(context, '${imported.length} billing records imported');
-                } catch (error) {
-                  setModalState(() {
-                    errorMessage = error.toString().replaceFirst('Exception: ', '');
-                  });
-                }
-              },
-              child: const Text('Import'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _trackInvoices(List<InvoiceItem> invoices) async {
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Track Billing & Payment'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Invoices tracked: ${invoices.length}'),
-            Text('Assigned queues: ${_assignments.length}'),
-            Text('Schedules prepared: ${_schedules.length}'),
-            Text('Notifications queued: ${_notifications.values.fold<int>(0, (sum, item) => sum + item)}'),
-          ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close'))],
-      ),
-    );
-  }
-
-  Future<void> _monitorInvoices(List<InvoiceItem> invoices) async {
-    final overdue = invoices.where((item) => item.status == 'Overdue').length;
-    await showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Monitor Billing & Payment', style: Theme.of(sheetContext).textTheme.titleLarge),
-            const SizedBox(height: 12),
-            Text('Overdue invoices: $overdue'),
-            Text('Assigned teams: ${_assignments.length}'),
-            Text('Reminder schedules: ${_schedules.length}'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _generateInvoices(List<InvoiceItem> invoices) async {
-    final content = StringBuffer('metric,value\n');
-    content.writeln('billing_records,${invoices.length}');
-    content.writeln('total_invoiced,${invoices.fold<double>(0, (sum, item) => sum + item.amount)}');
-    content.writeln('notification_jobs,${_notifications.values.fold<int>(0, (sum, item) => sum + item)}');
-    content.writeln('schedule_jobs,${_schedules.length}');
-    await DownloadService.saveCsvFile(filename: 'billing_payment_pack', content: content.toString());
-    if (mounted) showAppSnack(context, 'Billing & payment pack generated');
-  }
-}
-
-class _BillingScheduleItem {
-  final String invoiceKey;
-  final String title;
-  final String dateLabel;
-
-  const _BillingScheduleItem({
-    required this.invoiceKey,
-    required this.title,
-    required this.dateLabel,
-  });
 }
 
 class _FilterChip extends StatelessWidget {

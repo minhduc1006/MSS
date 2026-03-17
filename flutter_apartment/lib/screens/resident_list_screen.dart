@@ -14,7 +14,7 @@ class ResidentListScreen extends StatefulWidget {
 }
 
 class _ResidentListScreenState extends State<ResidentListScreen> {
-  static const _filters = ['All', 'Active', 'Pending Approval', 'Assigned', 'Rejected', 'Deactivated'];
+  static const _filters = ['All', 'Active', 'Deactivated'];
 
   late Future<List<ResidentItem>> _residentsFuture;
   final _draftResidents = <ResidentItem>[];
@@ -52,7 +52,7 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
   Widget build(BuildContext context) {
     return AppShell(
       title: 'Resident Management',
-      subtitle: 'Create, assign, approve, monitor, and manage resident records',
+      subtitle: 'Create and manage resident records',
       role: UserRole.admin,
       currentIndex: 1,
       actions: [
@@ -74,8 +74,7 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
           final residents = _mergedResidents(snapshot.data ?? const <ResidentItem>[]);
           final filtered = _filteredResidents(residents);
           final activeCount = residents.where((resident) => resident.status == 'Active').length;
-          final pendingCount = residents.where((resident) => resident.status == 'Pending Approval').length;
-          final assignedCount = residents.where((resident) => resident.status == 'Assigned').length;
+          final deactivatedCount = residents.where((resident) => resident.status == 'Deactivated').length;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -91,13 +90,13 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
                   children: [
                     MetricCard(label: 'Residents', value: '${residents.length}', icon: Icons.groups_rounded, iconColor: const Color(0xFF137FEC)),
                     MetricCard(label: 'Active', value: '$activeCount', icon: Icons.verified_rounded, iconColor: const Color(0xFF22C55E)),
-                    MetricCard(label: 'Assigned', value: '$assignedCount', note: '$pendingCount pending', noteColor: const Color(0xFFF59E0B), icon: Icons.assignment_ind_rounded, iconColor: const Color(0xFFF59E0B)),
+                    MetricCard(label: 'Deactivated', value: '$deactivatedCount', icon: Icons.block_rounded, iconColor: const Color(0xFFF59E0B)),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               AppSearchField(
-                hint: 'Search resident management by name, unit, email, or assignment',
+                hint: 'Search resident management by name, unit, or email',
                 controller: _searchController,
                 focusNode: _searchFocusNode,
                 onChanged: (_) => setState(() {}),
@@ -124,10 +123,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
                   ActionTile(label: 'Create', icon: Icons.person_add_alt_1_rounded, onTap: () => _openCreateResidentDialog(context), primary: true),
                   ActionTile(label: 'Search', icon: Icons.search_rounded, onTap: _focusSearch),
                   ActionTile(label: 'Export', icon: Icons.download_rounded, onTap: () => _exportResidents(residents)),
-                  ActionTile(label: 'Import', icon: Icons.upload_rounded, onTap: () => _openImportResidentsDialog(context)),
-                  ActionTile(label: 'Track', icon: Icons.track_changes_rounded, onTap: () => _showTracking(residents)),
-                  ActionTile(label: 'Monitor', icon: Icons.monitor_heart_rounded, onTap: () => _showMonitoring(residents)),
-                  ActionTile(label: 'Generate', icon: Icons.auto_awesome_rounded, onTap: () => _generateResidentPack(residents)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -153,9 +148,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
     final key = _residentKey(resident);
     final isSelected = key == _selectedResidentKey;
     final isExpanded = _expandedResidentKeys.contains(key);
-    final notificationCount = _notifications[key] ?? 0;
-    final assignment = _assignmentLabel(resident);
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -215,15 +207,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (assignment != null) _tag(context, Icons.assignment_ind_rounded, assignment),
-                  _tag(context, Icons.notifications_active_rounded, notificationCount == 0 ? 'No alerts' : '$notificationCount alerts'),
-                ],
-              ),
               if (isExpanded) ...[
                 const SizedBox(height: 14),
                 Wrap(
@@ -236,10 +219,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
                       _residentAction(context, icon: Icons.restart_alt_rounded, label: 'Activate', onTap: () => _activateResident(resident))
                     else ...[
                       _residentAction(context, icon: Icons.delete_rounded, label: 'Delete', onTap: () => _confirmDeleteResident(resident), destructive: true),
-                      _residentAction(context, icon: Icons.check_circle_rounded, label: 'Approve', onTap: () => _approveResident(resident)),
-                      _residentAction(context, icon: Icons.cancel_rounded, label: 'Reject', onTap: () => _rejectResident(resident)),
-                      _residentAction(context, icon: Icons.assignment_ind_rounded, label: 'Assign', onTap: () => _assignResident(resident)),
-                      _residentAction(context, icon: Icons.notifications_active_rounded, label: 'Notify', onTap: () => _notifyResident(resident)),
                     ],
                   ],
                 ),
@@ -314,12 +293,10 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
   List<ResidentItem> _filteredResidents(List<ResidentItem> residents) {
     final query = _searchController.text.trim().toLowerCase();
     return residents.where((resident) {
-      final assignment = (_assignments[_residentKey(resident)] ?? '').toLowerCase();
       final matchesQuery = query.isEmpty ||
           resident.name.toLowerCase().contains(query) ||
           resident.unit.toLowerCase().contains(query) ||
-          resident.email.toLowerCase().contains(query) ||
-          assignment.contains(query);
+          resident.email.toLowerCase().contains(query);
       final matchesFilter = _filter == 'All' || resident.status == _filter;
       return matchesQuery && matchesFilter;
     }).toList()
@@ -374,7 +351,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
     final unitController = TextEditingController();
     final towerController = TextEditingController(text: 'Skyview Tower');
     final emailController = TextEditingController();
-    bool requireApproval = false;
     String? errorMessage;
 
     await showDialog(
@@ -393,12 +369,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
                 TextField(controller: towerController, decoration: const InputDecoration(labelText: 'Tower')),
                 const SizedBox(height: 12),
                 TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Require approval'),
-                  value: requireApproval,
-                  onChanged: (value) => setModalState(() => requireApproval = value),
-                ),
                 if (errorMessage != null)
                   Align(
                     alignment: Alignment.centerLeft,
@@ -425,9 +395,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
                   if (!mounted) return;
                   navigator.pop();
                   setState(() {
-                    if (requireApproval) {
-                      _overrides[_residentKey(created)] = _copyResident(created, status: 'Pending Approval');
-                    }
                     _selectedResidentKey = _residentKey(created);
                     _residentsFuture = AppApiService.instance.fetchResidents();
                   });
@@ -598,8 +565,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
     final current = _requireSelected(resident, 'Select a resident to view.');
     if (current == null) return;
 
-    final key = _residentKey(current);
-
     await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -613,8 +578,6 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
             Text('Lease: ${current.lease}'),
             Text('Email: ${current.email}'),
             Text('Status: ${current.status}'),
-            Text('Assigned to: ${_assignments[key] ?? 'Unassigned'}'),
-            Text('Notifications sent: ${_notifications[key] ?? 0}'),
           ],
         ),
         actions: [

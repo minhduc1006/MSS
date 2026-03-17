@@ -7,10 +7,10 @@ void main() {
     await tester.pumpWidget(const SkylineHeightsApp());
     await tester.pumpAndSettle();
 
+    expect(find.text('Skyline Heights'), findsOneWidget);
     expect(find.text('Welcome Back'), findsOneWidget);
-    expect(find.text('Login'), findsOneWidget);
-    expect(find.text('Resident'), findsOneWidget);
-    expect(find.text('Staff'), findsOneWidget);
-    expect(find.text('Admin'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
+    expect(find.text('Forgot password?'), findsOneWidget);
+    expect(find.text('Sign in with Google'), findsOneWidget);
   });
 }
