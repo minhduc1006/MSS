@@ -11,9 +11,12 @@ if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out
 
 $processes = @()
 
-Write-Host "`n[! ] Stopping any existing Java processes to avoid port conflicts..." -ForegroundColor Yellow
+Write-Host "`n[! ] Robustly stopping any existing Java/Maven processes to release file locks..." -ForegroundColor Yellow
+# Kill Java, Maven, and cmd processes that might be running mvn
 taskkill /F /IM java.exe 2>$null | Out-Null
-Start-Sleep -Seconds 2
+taskkill /F /IM mvn.cmd 2>$null | Out-Null
+taskkill /F /IM cmd.exe /FI "WINDOWTITLE eq mvn*" 2>$null | Out-Null
+Start-Sleep -Seconds 3
 
 Write-Host "--- Initializing Microservices (File-Tailing Mode) ---" -ForegroundColor White
 
