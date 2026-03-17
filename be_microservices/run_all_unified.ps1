@@ -34,8 +34,8 @@ foreach ($service in $services) {
 
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = "cmd.exe"
-    # Redirect both stdout and stderr to the log file
-    $psi.Arguments = "/c mvn spring-boot:run > `"$logFile`" 2>&1"
+    # Added 'clean' to ensure properties are re-copied to target/classes
+    $psi.Arguments = "/c mvn clean spring-boot:run > `"$logFile`" 2>&1"
     $psi.WorkingDirectory = $path
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
@@ -51,6 +51,8 @@ foreach ($service in $services) {
             $service.Add("LogFile", $logFile)
             $service.Add("Offset", 0)
             Write-Host "Started $name (PID: $($process.Id)) -> $name.log" -ForegroundColor Gray
+            # Stagger startup slightly
+            Start-Sleep -Seconds 1
         } else {
             Write-Host "Failed to start $name" -ForegroundColor Red
         }

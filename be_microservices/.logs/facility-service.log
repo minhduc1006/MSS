@@ -5,6 +5,9 @@
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ facility-service ---
+[INFO] Deleting C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\facility-service\target
+[INFO] 
 [INFO] >>> spring-boot:3.5.0:run (default-cli) > test-compile @ facility-service >>>
 [INFO] 
 [INFO] --- resources:3.3.1:resources (default-resources) @ facility-service ---
@@ -12,7 +15,7 @@
 [INFO] Copying 0 resource from src\main\resources to target\classes
 [INFO] 
 [INFO] --- compiler:3.14.0:compile (default-compile) @ facility-service ---
-[INFO] Recompiling the module because of added or removed source files.
+[INFO] Recompiling the module because of changed source code.
 [INFO] Compiling 14 source files with javac [debug parameters release 21] to target\classes
 [INFO] 
 [INFO] --- resources:3.3.1:testResources (default-testResources) @ facility-service ---
@@ -36,49 +39,35 @@
 
  :: Spring Boot ::                (v3.5.0)
 
-2026-03-18T00:37:12.799+07:00  INFO 5432 --- [           main] c.m.facility.FacilityServiceApplication  : Starting FacilityServiceApplication using Java 21.0.3 with PID 5432 (C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\facility-service\target\classes started by Chinh in C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\facility-service)
-2026-03-18T00:37:12.808+07:00  INFO 5432 --- [           main] c.m.facility.FacilityServiceApplication  : No active profile set, falling back to 1 default profile: "default"
-2026-03-18T00:37:14.009+07:00  INFO 5432 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-03-18T00:37:14.158+07:00  INFO 5432 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 124 ms. Found 4 JPA repository interfaces.
-2026-03-18T00:37:15.090+07:00  INFO 5432 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
-2026-03-18T00:37:15.109+07:00  INFO 5432 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-03-18T00:37:15.109+07:00  INFO 5432 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.41]
-2026-03-18T00:37:15.186+07:00  INFO 5432 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-03-18T00:37:15.187+07:00  INFO 5432 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2314 ms
-2026-03-18T00:37:15.327+07:00  WARN 5432 --- [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Failed to initialize dependency 'dataSourceScriptDatabaseInitializer' of LoadTimeWeaverAware bean 'entityManagerFactory': Error creating bean with name 'dataSourceScriptDatabaseInitializer' defined in class path resource [org/springframework/boot/autoconfigure/sql/init/DataSourceInitializationConfiguration.class]: Unsatisfied dependency expressed through method 'dataSourceScriptDatabaseInitializer' parameter 0: Error creating bean with name 'dataSource' defined in class path resource [org/springframework/boot/autoconfigure/jdbc/DataSourceConfiguration$Hikari.class]: Failed to instantiate [com.zaxxer.hikari.HikariDataSource]: Factory method 'dataSource' threw exception with message: Failed to determine a suitable driver class
-2026-03-18T00:37:15.330+07:00  INFO 5432 --- [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
-2026-03-18T00:37:15.351+07:00  INFO 5432 --- [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
-
-Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
-2026-03-18T00:37:15.378+07:00 ERROR 5432 --- [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
-
-***************************
-APPLICATION FAILED TO START
-***************************
-
-Description:
-
-Failed to configure a DataSource: 'url' attribute is not specified and no embedded datasource could be configured.
-
-Reason: Failed to determine a suitable driver class
-
-
-Action:
-
-Consider the following:
-	If you want an embedded database (H2, HSQL or Derby), please put it on the classpath.
-	If you have database settings to be loaded from a particular profile you may need to activate it (no profiles are currently active).
-
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD FAILURE
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  12.783 s
-[INFO] Finished at: 2026-03-18T00:37:15+07:00
-[INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.5.0:run (default-cli) on project facility-service: Process terminated with exit code: 1 -> [Help 1]
-[ERROR] 
-[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
-[ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
+2026-03-18T01:00:57.006+07:00  INFO 39312 --- [facility-service] [           main] c.m.facility.FacilityServiceApplication  : Starting FacilityServiceApplication using Java 21.0.3 with PID 39312 (C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\facility-service\target\classes started by Chinh in C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\facility-service)
+2026-03-18T01:00:57.009+07:00  INFO 39312 --- [facility-service] [           main] c.m.facility.FacilityServiceApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-03-18T01:00:57.887+07:00  INFO 39312 --- [facility-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-18T01:00:57.979+07:00  INFO 39312 --- [facility-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 78 ms. Found 4 JPA repository interfaces.
+2026-03-18T01:00:58.654+07:00  INFO 39312 --- [facility-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8083 (http)
+2026-03-18T01:00:58.671+07:00  INFO 39312 --- [facility-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-18T01:00:58.672+07:00  INFO 39312 --- [facility-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.41]
+2026-03-18T01:00:58.738+07:00  INFO 39312 --- [facility-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-18T01:00:58.740+07:00  INFO 39312 --- [facility-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1674 ms
+2026-03-18T01:00:58.949+07:00  INFO 39312 --- [facility-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-18T01:00:59.069+07:00  INFO 39312 --- [facility-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.15.Final
+2026-03-18T01:00:59.132+07:00  INFO 39312 --- [facility-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-03-18T01:00:59.557+07:00  INFO 39312 --- [facility-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-18T01:00:59.608+07:00  INFO 39312 --- [facility-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-18T01:00:59.858+07:00  INFO 39312 --- [facility-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2b682e9
+2026-03-18T01:00:59.860+07:00  INFO 39312 --- [facility-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-18T01:00:59.968+07:00  INFO 39312 --- [facility-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.0
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-03-18T01:01:01.598+07:00  INFO 39312 --- [facility-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-18T01:01:01.700+07:00  INFO 39312 --- [facility-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-18T01:01:04.693+07:00  WARN 39312 --- [facility-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-03-18T01:01:05.177+07:00  INFO 39312 --- [facility-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8083 (http) with context path '/'
+2026-03-18T01:01:05.183+07:00  INFO 39312 --- [facility-service] [           main] c.m.facility.FacilityServiceApplication  : Started FacilityServiceApplication in 8.772 seconds (process running for 9.456)
+2026-03-18T01:03:48.320+07:00  INFO 39312 --- [facility-service] [nio-8083-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-18T01:03:48.320+07:00  INFO 39312 --- [facility-service] [nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-03-18T01:03:48.322+07:00  INFO 39312 --- [facility-service] [nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
