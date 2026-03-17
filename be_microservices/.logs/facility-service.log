@@ -1,0 +1,84 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.mss:facility-service >----------------------
+[INFO] Building facility-service 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.0:run (default-cli) > test-compile @ facility-service >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ facility-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ facility-service ---
+[INFO] Recompiling the module because of added or removed source files.
+[INFO] Compiling 14 source files with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ facility-service ---
+[INFO] skip non existing resourceDirectory C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\facility-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ facility-service ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] <<< spring-boot:3.5.0:run (default-cli) < test-compile @ facility-service <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.0:run (default-cli) @ facility-service ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.0)
+
+2026-03-18T00:37:12.799+07:00  INFO 5432 --- [           main] c.m.facility.FacilityServiceApplication  : Starting FacilityServiceApplication using Java 21.0.3 with PID 5432 (C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\facility-service\target\classes started by Chinh in C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\facility-service)
+2026-03-18T00:37:12.808+07:00  INFO 5432 --- [           main] c.m.facility.FacilityServiceApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-03-18T00:37:14.009+07:00  INFO 5432 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-18T00:37:14.158+07:00  INFO 5432 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 124 ms. Found 4 JPA repository interfaces.
+2026-03-18T00:37:15.090+07:00  INFO 5432 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-03-18T00:37:15.109+07:00  INFO 5432 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-18T00:37:15.109+07:00  INFO 5432 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.41]
+2026-03-18T00:37:15.186+07:00  INFO 5432 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-18T00:37:15.187+07:00  INFO 5432 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2314 ms
+2026-03-18T00:37:15.327+07:00  WARN 5432 --- [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Failed to initialize dependency 'dataSourceScriptDatabaseInitializer' of LoadTimeWeaverAware bean 'entityManagerFactory': Error creating bean with name 'dataSourceScriptDatabaseInitializer' defined in class path resource [org/springframework/boot/autoconfigure/sql/init/DataSourceInitializationConfiguration.class]: Unsatisfied dependency expressed through method 'dataSourceScriptDatabaseInitializer' parameter 0: Error creating bean with name 'dataSource' defined in class path resource [org/springframework/boot/autoconfigure/jdbc/DataSourceConfiguration$Hikari.class]: Failed to instantiate [com.zaxxer.hikari.HikariDataSource]: Factory method 'dataSource' threw exception with message: Failed to determine a suitable driver class
+2026-03-18T00:37:15.330+07:00  INFO 5432 --- [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-03-18T00:37:15.351+07:00  INFO 5432 --- [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-18T00:37:15.378+07:00 ERROR 5432 --- [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to configure a DataSource: 'url' attribute is not specified and no embedded datasource could be configured.
+
+Reason: Failed to determine a suitable driver class
+
+
+Action:
+
+Consider the following:
+	If you want an embedded database (H2, HSQL or Derby), please put it on the classpath.
+	If you have database settings to be loaded from a particular profile you may need to activate it (no profiles are currently active).
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12.783 s
+[INFO] Finished at: 2026-03-18T00:37:15+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.5.0:run (default-cli) on project facility-service: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

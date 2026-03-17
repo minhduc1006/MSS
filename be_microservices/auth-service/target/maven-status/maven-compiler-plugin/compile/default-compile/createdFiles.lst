@@ -3,7 +3,6 @@ com\mss\auth\controller\AuthController.class
 com\mss\auth\repository\AppUserRepository.class
 com\mss\auth\dto\AuthDtos$CreateStaffRequest.class
 com\mss\auth\service\AuthDomainService.class
-com\mss\auth\AuthServiceApplication.class
 com\mss\auth\dto\AuthDtos.class
 com\mss\auth\dto\AuthDtos$UserResponse.class
 com\mss\auth\dto\AuthDtos$VerifyPasswordResetOtpRequest.class
