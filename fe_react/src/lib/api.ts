@@ -183,6 +183,22 @@ export interface PaymentSession {
   status: string;
 }
 
+export interface ApartmentUnitItem {
+  id: number;
+  unitNumber: string;
+  tower: string;
+  unitType: string;
+  occupancyStatus: string;
+  residentName: string | null;
+  balance: number;
+}
+
+export interface ApartmentStats {
+  totalUnits: number;
+  occupiedUnits: number;
+  units: ApartmentUnitItem[];
+}
+
 export async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...init,
