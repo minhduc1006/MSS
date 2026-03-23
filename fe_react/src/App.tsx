@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import ResetPasswordNew from "./pages/ResetPasswordNew";
@@ -11,6 +12,8 @@ import ResidentSecurity from "./pages/ResidentSecurity";
 import ResidentAccount from "./pages/ResidentAccount";
 import ResidentList from "./pages/ResidentList";
 import Billing from "./pages/Billing";
+import AdminLeasing from "./pages/AdminLeasing";
+import AdminOperationsHub from "./pages/AdminOperationsHub";
 import Security from "./pages/Security";
 import Facilities from "./pages/Facilities";
 import Apartment from "./pages/Apartment";
@@ -26,6 +29,7 @@ export default function App() {
     <ToastProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/reset-password/new" element={<ResetPasswordNew />} />
@@ -34,6 +38,8 @@ export default function App() {
           <Route path="/admin/residents" element={<ResidentList />} />
           <Route path="/admin/staff" element={<StaffList />} />
           <Route path="/admin/billing" element={<Billing />} />
+          <Route path="/admin/leasing" element={<AdminLeasing />} />
+          <Route path="/admin/ops" element={<AdminOperationsHub />} />
           <Route path="/admin/facilities" element={<Facilities />} />
           <Route path="/admin/apartment" element={<Apartment />} />
           <Route path="/admin/security" element={<Security />} />
@@ -46,9 +52,8 @@ export default function App() {
           <Route path="/staff/facilities" element={<StaffFacilities />} />
           <Route path="/staff/security" element={<StaffSecurity />} />
           <Route path="/staff/settings" element={<StaffSettings />} />
-          <Route path="/" element={<Navigate to="/login" replace />} />
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </ToastProvider>

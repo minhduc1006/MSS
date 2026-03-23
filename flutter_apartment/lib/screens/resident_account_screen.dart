@@ -24,6 +24,13 @@ class _ResidentAccountScreenState extends State<ResidentAccountScreen> {
     _accountFuture = AppApiService.instance.fetchAccountSummary(context.read<AuthProvider>().currentUserId);
   }
 
+  void _reload() {
+    setState(() {
+      _accountFuture = AppApiService.instance
+          .fetchAccountSummary(context.read<AuthProvider>().currentUserId);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
@@ -34,7 +41,7 @@ class _ResidentAccountScreenState extends State<ResidentAccountScreen> {
       role: UserRole.resident,
       currentIndex: 4,
       actions: [
-        ShellAction(icon: Icons.settings_rounded, onPressed: () => setState(() {})),
+        ShellAction(icon: Icons.refresh_rounded, onPressed: _reload),
       ],
       body: FutureBuilder<AccountSummary>(
         future: _accountFuture,
@@ -74,7 +81,13 @@ class _ResidentAccountScreenState extends State<ResidentAccountScreen> {
                   ],
                 ),
               const SizedBox(height: 18),
-              _settingTile(context, Icons.person_outline_rounded, 'Profile Details', user?.email ?? 'No email loaded'),
+              _settingTile(
+                context,
+                Icons.person_outline_rounded,
+                'Profile Details',
+                user?.email ?? 'No email loaded',
+                onTap: () => _openProfileSheet(summary),
+              ),
               _settingTile(
                 context,
                 Icons.password_rounded,
@@ -82,8 +95,20 @@ class _ResidentAccountScreenState extends State<ResidentAccountScreen> {
                 'Update your account password',
                 onTap: () => _openChangePasswordDialog(auth.currentUserId),
               ),
-              _settingTile(context, Icons.credit_card_rounded, 'Payment Preferences', 'Manage auto-pay and saved methods'),
-              _settingTile(context, Icons.notifications_none_rounded, 'Notifications', 'Email and in-app alerts'),
+              _settingTile(
+                context,
+                Icons.credit_card_rounded,
+                'Payment Preferences',
+                'Manage auto-pay and saved methods',
+                onTap: () => Navigator.pushNamed(context, '/resident/bills'),
+              ),
+              _settingTile(
+                context,
+                Icons.notifications_none_rounded,
+                'Notifications',
+                'Email and in-app alerts',
+                onTap: () => _openNotificationSheet(summary),
+              ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: InfoCard(
@@ -173,6 +198,105 @@ class _ResidentAccountScreenState extends State<ResidentAccountScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _openProfileSheet(AccountSummary? summary) async {
+    final user = summary?.user;
+    await showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Profile Details',
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            InfoCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _detailRow('Name', user?.fullName ?? 'Not available'),
+                  const SizedBox(height: 10),
+                  _detailRow('Email', user?.email ?? 'Not available'),
+                  const SizedBox(height: 10),
+                  _detailRow('Unit', user?.unitNumber ?? 'Not assigned'),
+                  const SizedBox(height: 10),
+                  _detailRow('Tower', user?.tower ?? 'Not assigned'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openNotificationSheet(AccountSummary? summary) async {
+    await showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Notifications',
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            InfoCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Current alert channels',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Billing updates, complaint responses, and package desk activity are currently delivered through in-app views and backend-driven status updates.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Open issues: ${summary?.stats.openIssueCount ?? 0}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.tonal(
+              onPressed: () => Navigator.pushNamed(context, '/resident/support'),
+              child: const Text('Open Support Desk'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 72,
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      ],
     );
   }
 

@@ -6,8 +6,12 @@ D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\sr
 D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\dto\BillingDtos.java
 D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\model\ApartmentUnit.java
 D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\model\Invoice.java
+D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\model\TenancyLease.java
+D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\model\UtilityMeterReading.java
 D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\repository\ApartmentUnitRepository.java
 D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\repository\InvoiceRepository.java
+D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\repository\TenancyLeaseRepository.java
+D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\repository\UtilityMeterReadingRepository.java
 D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\service\AuthServiceClient.java
 D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\service\BillingDomainService.java
 D:\FULearning\Spring2026\MSS\MSS_Project\MSS\be_microservices\billing-service\src\main\java\com\mss\billing\service\BillingSeeder.java

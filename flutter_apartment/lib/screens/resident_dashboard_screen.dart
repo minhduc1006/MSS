@@ -155,10 +155,10 @@ class _ResidentDashboardScreenState extends State<ResidentDashboardScreen> {
                     onTap: () => _openBookingModal(context, 'Gym Session')),
                 const SizedBox(width: 12),
                 ActionTile(
-                    label: 'Help Desk',
+                    label: 'Packages & Tickets',
                     icon: Icons.support_agent_rounded,
                     onTap: () =>
-                        Navigator.pushNamed(context, '/resident/security')),
+                        Navigator.pushNamed(context, '/resident/support')),
               ],
             ),
           ),

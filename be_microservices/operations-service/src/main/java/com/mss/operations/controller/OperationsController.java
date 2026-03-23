@@ -81,4 +81,94 @@ public class OperationsController {
     ) {
         return service.residentDecision(requestId, request);
     }
+
+    @GetMapping("/packages")
+    public List<OperationsDtos.PackageItem> packages() {
+        return service.packages();
+    }
+
+    @GetMapping("/packages/resident/{residentId}")
+    public List<OperationsDtos.PackageItem> residentPackages(@PathVariable Long residentId) {
+        return service.residentPackages(residentId);
+    }
+
+    @PostMapping("/packages")
+    public OperationsDtos.PackageItem createPackage(@Valid @RequestBody OperationsDtos.CreatePackageRequest request) {
+        return service.createPackage(request);
+    }
+
+    @PostMapping("/packages/{packageId}/status")
+    public OperationsDtos.PackageItem updatePackageStatus(
+        @PathVariable Long packageId,
+        @Valid @RequestBody OperationsDtos.UpdatePackageStatusRequest request
+    ) {
+        return service.updatePackageStatus(packageId, request);
+    }
+
+    @GetMapping("/complaints")
+    public List<OperationsDtos.ComplaintItem> complaints() {
+        return service.complaints();
+    }
+
+    @GetMapping("/complaints/resident/{residentId}")
+    public List<OperationsDtos.ComplaintItem> residentComplaints(@PathVariable Long residentId) {
+        return service.residentComplaints(residentId);
+    }
+
+    @GetMapping("/complaints/staff/{staffId}")
+    public List<OperationsDtos.ComplaintItem> staffComplaints(@PathVariable Long staffId) {
+        return service.staffComplaints(staffId);
+    }
+
+    @PostMapping("/complaints")
+    public OperationsDtos.ComplaintItem createComplaint(@Valid @RequestBody OperationsDtos.CreateComplaintRequest request) {
+        return service.createComplaint(request);
+    }
+
+    @PostMapping("/complaints/{complaintId}/assign")
+    public OperationsDtos.ComplaintItem assignComplaint(
+        @PathVariable Long complaintId,
+        @Valid @RequestBody OperationsDtos.AssignComplaintRequest request
+    ) {
+        return service.assignComplaint(complaintId, request);
+    }
+
+    @PostMapping("/complaints/{complaintId}/status")
+    public OperationsDtos.ComplaintItem updateComplaintStatus(
+        @PathVariable Long complaintId,
+        @Valid @RequestBody OperationsDtos.UpdateComplaintStatusRequest request
+    ) {
+        return service.updateComplaintStatus(complaintId, request);
+    }
+
+    @PostMapping("/complaints/{complaintId}/rating")
+    public OperationsDtos.ComplaintItem rateComplaint(
+        @PathVariable Long complaintId,
+        @Valid @RequestBody OperationsDtos.RateComplaintRequest request
+    ) {
+        return service.rateComplaint(complaintId, request);
+    }
+
+    @GetMapping("/shifts")
+    public List<OperationsDtos.StaffShiftItem> shifts() {
+        return service.shifts();
+    }
+
+    @GetMapping("/shifts/staff/{staffId}")
+    public List<OperationsDtos.StaffShiftItem> staffShifts(@PathVariable Long staffId) {
+        return service.staffShifts(staffId);
+    }
+
+    @PostMapping("/shifts")
+    public OperationsDtos.StaffShiftItem createShift(@Valid @RequestBody OperationsDtos.CreateStaffShiftRequest request) {
+        return service.createShift(request);
+    }
+
+    @PostMapping("/shifts/{shiftId}")
+    public OperationsDtos.StaffShiftItem updateShift(
+        @PathVariable Long shiftId,
+        @Valid @RequestBody OperationsDtos.CreateStaffShiftRequest request
+    ) {
+        return service.updateShift(shiftId, request);
+    }
 }

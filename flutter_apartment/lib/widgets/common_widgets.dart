@@ -131,6 +131,16 @@ List<NavItem> drawerItemsForRole(UserRole role) {
             route: '/admin/security',
             index: 6,
             icon: Icons.shield_rounded),
+        NavItem(
+            label: 'Leasing & Utilities',
+            route: '/admin/leasing',
+            index: 7,
+            icon: Icons.description_rounded),
+        NavItem(
+            label: 'Operations Hub',
+            route: '/admin/ops',
+            index: 8,
+            icon: Icons.hub_rounded),
       ];
     case UserRole.staff:
       return const [
@@ -154,6 +164,11 @@ List<NavItem> drawerItemsForRole(UserRole role) {
             route: '/staff/settings',
             index: 3,
             icon: Icons.settings_rounded),
+        NavItem(
+            label: 'Roster',
+            route: '/staff/roster',
+            index: 4,
+            icon: Icons.schedule_rounded),
       ];
     case UserRole.resident:
       return const [
@@ -182,6 +197,11 @@ List<NavItem> drawerItemsForRole(UserRole role) {
             route: '/resident/account',
             index: 4,
             icon: Icons.person_rounded),
+        NavItem(
+            label: 'Support Desk',
+            route: '/resident/support',
+            index: 5,
+            icon: Icons.support_agent_rounded),
       ];
   }
 }

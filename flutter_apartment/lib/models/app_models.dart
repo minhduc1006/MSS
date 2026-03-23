@@ -346,6 +346,198 @@ class ApartmentStatsData {
   });
 }
 
+class TenancyItem {
+  final int? id;
+  final int? residentId;
+  final String residentName;
+  final String? residentEmail;
+  final String unitNumber;
+  final String tower;
+  final String leaseType;
+  final String startDate;
+  final String endDate;
+  final double monthlyRent;
+  final double securityDeposit;
+  final String status;
+  final String? notes;
+
+  const TenancyItem({
+    this.id,
+    this.residentId,
+    required this.residentName,
+    this.residentEmail,
+    required this.unitNumber,
+    required this.tower,
+    required this.leaseType,
+    required this.startDate,
+    required this.endDate,
+    required this.monthlyRent,
+    required this.securityDeposit,
+    required this.status,
+    this.notes,
+  });
+}
+
+class TenancyOverviewData {
+  final int activeLeases;
+  final double monthlyRecurringRevenue;
+  final List<TenancyItem> leases;
+
+  const TenancyOverviewData({
+    required this.activeLeases,
+    required this.monthlyRecurringRevenue,
+    required this.leases,
+  });
+}
+
+class UtilityMeterItem {
+  final int? id;
+  final int? residentId;
+  final String residentName;
+  final String? residentEmail;
+  final String unitNumber;
+  final String meterType;
+  final String billingMonth;
+  final double previousReading;
+  final double currentReading;
+  final double usageAmount;
+  final double unitPrice;
+  final double totalAmount;
+  final String submittedByName;
+  final String status;
+  final String? note;
+
+  const UtilityMeterItem({
+    this.id,
+    this.residentId,
+    required this.residentName,
+    this.residentEmail,
+    required this.unitNumber,
+    required this.meterType,
+    required this.billingMonth,
+    required this.previousReading,
+    required this.currentReading,
+    required this.usageAmount,
+    required this.unitPrice,
+    required this.totalAmount,
+    required this.submittedByName,
+    required this.status,
+    this.note,
+  });
+}
+
+class UtilityMeterOverviewData {
+  final double totalBilled;
+  final int pendingSubmissions;
+  final List<UtilityMeterItem> meters;
+
+  const UtilityMeterOverviewData({
+    required this.totalBilled,
+    required this.pendingSubmissions,
+    required this.meters,
+  });
+}
+
+class PackageRecordItem {
+  final int? id;
+  final int? residentId;
+  final String? residentName;
+  final String? unitNumber;
+  final String recordType;
+  final String? carrier;
+  final String itemName;
+  final String? trackingCode;
+  final String location;
+  final String status;
+  final String reportedByName;
+  final String receivedAt;
+  final String? pickedUpAt;
+  final String? note;
+
+  const PackageRecordItem({
+    this.id,
+    this.residentId,
+    this.residentName,
+    this.unitNumber,
+    required this.recordType,
+    this.carrier,
+    required this.itemName,
+    this.trackingCode,
+    required this.location,
+    required this.status,
+    required this.reportedByName,
+    required this.receivedAt,
+    this.pickedUpAt,
+    this.note,
+  });
+}
+
+class ComplaintTicketItem {
+  final int? id;
+  final int residentId;
+  final String residentName;
+  final String unitNumber;
+  final String category;
+  final String title;
+  final String description;
+  final String priority;
+  final String status;
+  final int? assignedStaffId;
+  final String? assignedStaffName;
+  final String? responseNote;
+  final int? residentRating;
+  final String? residentReview;
+  final String createdAt;
+  final String? resolvedAt;
+
+  const ComplaintTicketItem({
+    this.id,
+    required this.residentId,
+    required this.residentName,
+    required this.unitNumber,
+    required this.category,
+    required this.title,
+    required this.description,
+    required this.priority,
+    required this.status,
+    this.assignedStaffId,
+    this.assignedStaffName,
+    this.responseNote,
+    this.residentRating,
+    this.residentReview,
+    required this.createdAt,
+    this.resolvedAt,
+  });
+}
+
+class StaffShiftItem {
+  final int? id;
+  final int staffId;
+  final String staffName;
+  final String role;
+  final String shiftDate;
+  final String shiftLabel;
+  final String zone;
+  final String startTime;
+  final String endTime;
+  final String status;
+  final String? note;
+
+  const StaffShiftItem({
+    this.id,
+    required this.staffId,
+    required this.staffName,
+    required this.role,
+    required this.shiftDate,
+    required this.shiftLabel,
+    required this.zone,
+    required this.startTime,
+    required this.endTime,
+    required this.status,
+    this.note,
+  });
+}
+
 class AnnouncementItem {
   final int? id;
   final String title;

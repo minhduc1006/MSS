@@ -8,6 +8,8 @@ import 'screens/admin_dashboard_screen.dart';
 import 'screens/admin_activity_screen.dart';
 import 'screens/apartment_screen.dart';
 import 'screens/billing_screen.dart';
+import 'screens/admin_leasing_screen.dart';
+import 'screens/admin_operations_hub_screen.dart';
 import 'screens/facilities_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/resident_account_screen.dart';
@@ -15,11 +17,13 @@ import 'screens/resident_bills_screen.dart';
 import 'screens/resident_bookings_screen.dart';
 import 'screens/resident_dashboard_screen.dart';
 import 'screens/resident_list_screen.dart';
+import 'screens/resident_support_screen.dart';
 import 'screens/resident_security_screen.dart';
 import 'screens/security_screen.dart';
 import 'screens/staff_dashboard_screen.dart';
 import 'screens/staff_facilities_screen.dart';
 import 'screens/staff_list_screen.dart';
+import 'screens/staff_roster_screen.dart';
 import 'screens/staff_security_screen.dart';
 import 'screens/staff_settings_screen.dart';
 import 'theme/app_theme.dart';
@@ -67,15 +71,19 @@ class SkylineHeightsApp extends StatelessWidget {
               '/admin/facilities': (_) => const FacilitiesScreen(),
               '/admin/apartment': (_) => const ApartmentScreen(),
               '/admin/security': (_) => const SecurityScreen(),
+              '/admin/leasing': (_) => const AdminLeasingScreen(),
+              '/admin/ops': (_) => const AdminOperationsHubScreen(),
               '/resident': (_) => const ResidentDashboardScreen(),
               '/resident/bills': (_) => const ResidentBillsScreen(),
               '/resident/bookings': (_) => const ResidentBookingsScreen(),
               '/resident/security': (_) => const ResidentSecurityScreen(),
               '/resident/account': (_) => const ResidentAccountScreen(),
+              '/resident/support': (_) => const ResidentSupportScreen(),
               '/staff': (_) => const StaffDashboardScreen(),
               '/staff/facilities': (_) => const StaffFacilitiesScreen(),
               '/staff/security': (_) => const StaffSecurityScreen(),
               '/staff/settings': (_) => const StaffSettingsScreen(),
+              '/staff/roster': (_) => const StaffRosterScreen(),
             },
           );
         },

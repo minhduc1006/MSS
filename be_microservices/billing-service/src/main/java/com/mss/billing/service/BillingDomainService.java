@@ -4,8 +4,12 @@ import com.mss.billing.config.PayOsProperties;
 import com.mss.billing.dto.BillingDtos;
 import com.mss.billing.model.ApartmentUnit;
 import com.mss.billing.model.Invoice;
+import com.mss.billing.model.TenancyLease;
+import com.mss.billing.model.UtilityMeterReading;
 import com.mss.billing.repository.ApartmentUnitRepository;
 import com.mss.billing.repository.InvoiceRepository;
+import com.mss.billing.repository.TenancyLeaseRepository;
+import com.mss.billing.repository.UtilityMeterReadingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -31,6 +35,8 @@ public class BillingDomainService {
 
     private final InvoiceRepository invoiceRepository;
     private final ApartmentUnitRepository unitRepository;
+    private final TenancyLeaseRepository tenancyLeaseRepository;
+    private final UtilityMeterReadingRepository utilityMeterReadingRepository;
     private final PayOsProperties payOsProperties;
     private final AuthServiceClient authServiceClient;
     private final InvoiceEmailService invoiceEmailService;
@@ -38,12 +44,16 @@ public class BillingDomainService {
     public BillingDomainService(
         InvoiceRepository invoiceRepository,
         ApartmentUnitRepository unitRepository,
+        TenancyLeaseRepository tenancyLeaseRepository,
+        UtilityMeterReadingRepository utilityMeterReadingRepository,
         PayOsProperties payOsProperties,
         AuthServiceClient authServiceClient,
         InvoiceEmailService invoiceEmailService
     ) {
         this.invoiceRepository = invoiceRepository;
         this.unitRepository = unitRepository;
+        this.tenancyLeaseRepository = tenancyLeaseRepository;
+        this.utilityMeterReadingRepository = utilityMeterReadingRepository;
         this.payOsProperties = payOsProperties;
         this.authServiceClient = authServiceClient;
         this.invoiceEmailService = invoiceEmailService;
@@ -309,6 +319,100 @@ public class BillingDomainService {
         return invoiceEmailService.sendInvoiceEmail(invoice);
     }
 
+    public BillingDtos.TenancyOverview tenancies() {
+        List<TenancyLease> leases = tenancyLeaseRepository.findAllByOrderByStartDateDesc();
+        long activeLeases = leases.stream().filter(lease -> "Active".equalsIgnoreCase(lease.getStatus())).count();
+        BigDecimal recurringRevenue = leases.stream()
+            .filter(lease -> "Active".equalsIgnoreCase(lease.getStatus()))
+            .map(TenancyLease::getMonthlyRent)
+            .filter(amount -> amount != null)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new BillingDtos.TenancyOverview(activeLeases, recurringRevenue, leases.stream().map(this::toTenancy).toList());
+    }
+
+    public BillingDtos.TenancyItem createTenancy(BillingDtos.CreateTenancyRequest request) {
+        TenancyLease lease = new TenancyLease();
+        applyTenancy(lease, request);
+        return toTenancy(tenancyLeaseRepository.save(lease));
+    }
+
+    public BillingDtos.TenancyItem updateTenancy(Long tenancyId, BillingDtos.CreateTenancyRequest request) {
+        TenancyLease lease = tenancyLeaseRepository.findById(tenancyId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tenancy not found"));
+        applyTenancy(lease, request);
+        return toTenancy(tenancyLeaseRepository.save(lease));
+    }
+
+    public BillingDtos.TenancyItem updateTenancyStatus(Long tenancyId, BillingDtos.UpdateTenancyStatusRequest request) {
+        TenancyLease lease = tenancyLeaseRepository.findById(tenancyId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tenancy not found"));
+        if (request == null || !hasText(request.status())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tenancy status is required");
+        }
+        lease.setStatus(request.status().trim());
+        return toTenancy(tenancyLeaseRepository.save(lease));
+    }
+
+    public BillingDtos.UtilityMeterOverview utilityMeters() {
+        List<UtilityMeterReading> meters = utilityMeterReadingRepository.findAllByOrderByBillingMonthDescIdDesc();
+        BigDecimal totalBilled = meters.stream()
+            .map(UtilityMeterReading::getTotalAmount)
+            .filter(amount -> amount != null)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        long pending = meters.stream().filter(meter -> "Submitted".equalsIgnoreCase(meter.getStatus())).count();
+        return new BillingDtos.UtilityMeterOverview(totalBilled, pending, meters.stream().map(this::toUtilityMeter).toList());
+    }
+
+    public BillingDtos.UtilityMeterItem createUtilityMeter(BillingDtos.CreateUtilityMeterRequest request) {
+        UtilityMeterReading meter = new UtilityMeterReading();
+        applyUtilityMeter(meter, request);
+        return toUtilityMeter(utilityMeterReadingRepository.save(meter));
+    }
+
+    public BillingDtos.UtilityMeterItem updateUtilityMeter(Long meterId, BillingDtos.CreateUtilityMeterRequest request) {
+        UtilityMeterReading meter = utilityMeterReadingRepository.findById(meterId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utility meter reading not found"));
+        applyUtilityMeter(meter, request);
+        return toUtilityMeter(utilityMeterReadingRepository.save(meter));
+    }
+
+    public BillingDtos.UtilityMeterItem updateUtilityMeterStatus(Long meterId, BillingDtos.UpdateUtilityMeterStatusRequest request) {
+        UtilityMeterReading meter = utilityMeterReadingRepository.findById(meterId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utility meter reading not found"));
+        if (request == null || !hasText(request.status())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Utility meter status is required");
+        }
+        meter.setStatus(request.status().trim());
+        return toUtilityMeter(utilityMeterReadingRepository.save(meter));
+    }
+
+    public BillingDtos.BillItem generateUtilityInvoice(Long meterId) {
+        UtilityMeterReading meter = utilityMeterReadingRepository.findById(meterId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utility meter reading not found"));
+        if (meter.getResidentId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Resident is required before generating a utility invoice");
+        }
+        if ("Invoiced".equalsIgnoreCase(meter.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "This utility reading has already been invoiced");
+        }
+
+        Invoice invoice = new Invoice();
+        invoice.setResidentId(meter.getResidentId());
+        invoice.setResidentName(meter.getResidentName());
+        invoice.setResidentEmail(hasText(meter.getResidentEmail()) ? meter.getResidentEmail().trim() : authServiceClient.getUserEmail(meter.getResidentId()));
+        invoice.setUnitNumber(meter.getUnitNumber());
+        invoice.setTitle(meter.getMeterType() + " Usage " + meter.getBillingMonth());
+        invoice.setCategory("utility");
+        invoice.setAmount(meter.getTotalAmount());
+        invoice.setDueDate(LocalDate.now().plusDays(7));
+        invoice.setStatus("Pending");
+        invoice.setDescription("Auto-generated from " + meter.getMeterType() + " meter reading for " + meter.getBillingMonth());
+        BillingDtos.BillItem created = toBill(invoiceRepository.save(invoice));
+        meter.setStatus("Invoiced");
+        utilityMeterReadingRepository.save(meter);
+        return created;
+    }
+
     private BillingDtos.BillItem toBill(Invoice invoice) {
         return new BillingDtos.BillItem(
             invoice.getId(),
@@ -330,6 +434,44 @@ public class BillingDomainService {
 
     private BillingDtos.UnitItem toUnit(ApartmentUnit unit) {
         return new BillingDtos.UnitItem(unit.getId(), unit.getUnitNumber(), unit.getTower(), unit.getUnitType(), unit.getOccupancyStatus(), unit.getResidentName(), unit.getBalance());
+    }
+
+    private BillingDtos.TenancyItem toTenancy(TenancyLease lease) {
+        return new BillingDtos.TenancyItem(
+            lease.getId(),
+            lease.getResidentId(),
+            lease.getResidentName(),
+            lease.getResidentEmail(),
+            lease.getUnitNumber(),
+            lease.getTower(),
+            lease.getLeaseType(),
+            lease.getStartDate(),
+            lease.getEndDate(),
+            lease.getMonthlyRent(),
+            lease.getSecurityDeposit(),
+            lease.getStatus(),
+            lease.getNotes()
+        );
+    }
+
+    private BillingDtos.UtilityMeterItem toUtilityMeter(UtilityMeterReading meter) {
+        return new BillingDtos.UtilityMeterItem(
+            meter.getId(),
+            meter.getResidentId(),
+            meter.getResidentName(),
+            meter.getResidentEmail(),
+            meter.getUnitNumber(),
+            meter.getMeterType(),
+            meter.getBillingMonth(),
+            meter.getPreviousReading(),
+            meter.getCurrentReading(),
+            meter.getUsageAmount(),
+            meter.getUnitPrice(),
+            meter.getTotalAmount(),
+            meter.getSubmittedByName(),
+            meter.getStatus(),
+            meter.getNote()
+        );
     }
 
     private String resolveResidentEmail(BillingDtos.CreateInvoiceRequest request) {
@@ -371,6 +513,69 @@ public class BillingDomainService {
         unit.setOccupancyStatus(request.occupancyStatus().trim());
         unit.setResidentName(hasText(request.residentName()) ? request.residentName().trim() : null);
         unit.setBalance(request.balance() == null ? BigDecimal.ZERO : request.balance());
+    }
+
+    private void applyTenancy(TenancyLease lease, BillingDtos.CreateTenancyRequest request) {
+        if (request == null || !hasText(request.residentName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Resident name is required");
+        }
+        if (!hasText(request.unitNumber())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unit number is required");
+        }
+        if (!hasText(request.tower())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tower is required");
+        }
+        if (request.startDate() == null || request.endDate() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tenancy start and end dates are required");
+        }
+        if (request.endDate().isBefore(request.startDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tenancy end date must be after start date");
+        }
+        lease.setResidentId(request.residentId());
+        lease.setResidentName(request.residentName().trim());
+        lease.setResidentEmail(hasText(request.residentEmail()) ? request.residentEmail().trim() : null);
+        lease.setUnitNumber(request.unitNumber().trim());
+        lease.setTower(request.tower().trim());
+        lease.setLeaseType(hasText(request.leaseType()) ? request.leaseType().trim() : "Lease");
+        lease.setStartDate(request.startDate());
+        lease.setEndDate(request.endDate());
+        lease.setMonthlyRent(request.monthlyRent() == null ? BigDecimal.ZERO : request.monthlyRent());
+        lease.setSecurityDeposit(request.securityDeposit() == null ? BigDecimal.ZERO : request.securityDeposit());
+        lease.setStatus(hasText(request.status()) ? request.status().trim() : "Active");
+        lease.setNotes(request.notes());
+    }
+
+    private void applyUtilityMeter(UtilityMeterReading meter, BillingDtos.CreateUtilityMeterRequest request) {
+        if (request == null || !hasText(request.unitNumber())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unit number is required");
+        }
+        if (!hasText(request.meterType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Meter type is required");
+        }
+        if (!hasText(request.billingMonth())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Billing month is required");
+        }
+        BigDecimal previousReading = request.previousReading() == null ? BigDecimal.ZERO : request.previousReading();
+        BigDecimal currentReading = request.currentReading() == null ? BigDecimal.ZERO : request.currentReading();
+        if (currentReading.compareTo(previousReading) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current reading must be greater than or equal to previous reading");
+        }
+        BigDecimal unitPrice = request.unitPrice() == null ? BigDecimal.ZERO : request.unitPrice();
+        BigDecimal usageAmount = currentReading.subtract(previousReading);
+        meter.setResidentId(request.residentId());
+        meter.setResidentName(hasText(request.residentName()) ? request.residentName().trim() : null);
+        meter.setResidentEmail(hasText(request.residentEmail()) ? request.residentEmail().trim() : null);
+        meter.setUnitNumber(request.unitNumber().trim());
+        meter.setMeterType(request.meterType().trim());
+        meter.setBillingMonth(request.billingMonth().trim());
+        meter.setPreviousReading(previousReading);
+        meter.setCurrentReading(currentReading);
+        meter.setUsageAmount(usageAmount);
+        meter.setUnitPrice(unitPrice);
+        meter.setTotalAmount(usageAmount.multiply(unitPrice));
+        meter.setSubmittedByName(hasText(request.submittedByName()) ? request.submittedByName().trim() : "Building Staff");
+        meter.setStatus(hasText(request.status()) ? request.status().trim() : "Submitted");
+        meter.setNote(request.note());
     }
 
     private PayOS requirePayOs() {

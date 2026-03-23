@@ -2,8 +2,12 @@ package com.mss.billing.service;
 
 import com.mss.billing.model.ApartmentUnit;
 import com.mss.billing.model.Invoice;
+import com.mss.billing.model.TenancyLease;
+import com.mss.billing.model.UtilityMeterReading;
 import com.mss.billing.repository.ApartmentUnitRepository;
 import com.mss.billing.repository.InvoiceRepository;
+import com.mss.billing.repository.TenancyLeaseRepository;
+import com.mss.billing.repository.UtilityMeterReadingRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -18,15 +22,26 @@ public class BillingSeeder implements CommandLineRunner {
 
     private final InvoiceRepository invoiceRepository;
     private final ApartmentUnitRepository unitRepository;
+    private final TenancyLeaseRepository tenancyLeaseRepository;
+    private final UtilityMeterReadingRepository utilityMeterReadingRepository;
 
-    public BillingSeeder(InvoiceRepository invoiceRepository, ApartmentUnitRepository unitRepository) {
+    public BillingSeeder(
+        InvoiceRepository invoiceRepository,
+        ApartmentUnitRepository unitRepository,
+        TenancyLeaseRepository tenancyLeaseRepository,
+        UtilityMeterReadingRepository utilityMeterReadingRepository
+    ) {
         this.invoiceRepository = invoiceRepository;
         this.unitRepository = unitRepository;
+        this.tenancyLeaseRepository = tenancyLeaseRepository;
+        this.utilityMeterReadingRepository = utilityMeterReadingRepository;
     }
 
     @Override
     public void run(String... args) {
         ensureSeedUnits();
+        ensureTenancies();
+        ensureUtilityMeters();
         if (invoiceRepository.count() > 0) {
             normalizeLegacySeedData();
             return;
@@ -109,5 +124,85 @@ public class BillingSeeder implements CommandLineRunner {
         invoice.setStatus(status);
         invoice.setDescription(description);
         invoiceRepository.save(invoice);
+    }
+
+    private void ensureTenancies() {
+        if (tenancyLeaseRepository.count() > 0) {
+            return;
+        }
+        tenancy(2L, "John Doe", "john.doe@skyline.local", "402", "Skyview Tower", "Lease", LocalDate.of(2025, 9, 1), LocalDate.of(2026, 8, 31), new BigDecimal("9500000"), new BigDecimal("19000000"), "Active", "Renewal due in Q3.");
+        tenancy(3L, "Alex Thompson", "alex.thompson@skyline.local", "402B", "Skyview Tower", "Owner Occupied", LocalDate.of(2024, 1, 1), LocalDate.of(2028, 12, 31), new BigDecimal("0"), new BigDecimal("0"), "Active", "Owner account with penthouse parking priority.");
+        tenancy(4L, "Sarah Jenkins", "sarah.jenkins@skyline.local", "115A", "Ocean Tower", "Lease", LocalDate.of(2026, 1, 15), LocalDate.of(2026, 12, 31), new BigDecimal("12500000"), new BigDecimal("25000000"), "Active", "Corporate tenancy with 2-year extension option.");
+    }
+
+    private void ensureUtilityMeters() {
+        if (utilityMeterReadingRepository.count() > 0) {
+            return;
+        }
+        meter(2L, "John Doe", "john.doe@skyline.local", "402", "Electricity", "2026-03", new BigDecimal("1280"), new BigDecimal("1415"), new BigDecimal("3200"), "Building Staff", "Approved", "Auto-captured from March inspection.");
+        meter(2L, "John Doe", "john.doe@skyline.local", "402", "Water", "2026-03", new BigDecimal("356"), new BigDecimal("379"), new BigDecimal("14500"), "Building Staff", "Invoiced", "Invoice already reflected in resident billing.");
+        meter(4L, "Sarah Jenkins", "sarah.jenkins@skyline.local", "115A", "Electricity", "2026-03", new BigDecimal("980"), new BigDecimal("1130"), new BigDecimal("3200"), "Tower Supervisor", "Submitted", "Awaiting finance review.");
+    }
+
+    private void tenancy(
+        Long residentId,
+        String residentName,
+        String residentEmail,
+        String unitNumber,
+        String tower,
+        String leaseType,
+        LocalDate startDate,
+        LocalDate endDate,
+        BigDecimal monthlyRent,
+        BigDecimal securityDeposit,
+        String status,
+        String notes
+    ) {
+        TenancyLease lease = new TenancyLease();
+        lease.setResidentId(residentId);
+        lease.setResidentName(residentName);
+        lease.setResidentEmail(residentEmail);
+        lease.setUnitNumber(unitNumber);
+        lease.setTower(tower);
+        lease.setLeaseType(leaseType);
+        lease.setStartDate(startDate);
+        lease.setEndDate(endDate);
+        lease.setMonthlyRent(monthlyRent);
+        lease.setSecurityDeposit(securityDeposit);
+        lease.setStatus(status);
+        lease.setNotes(notes);
+        tenancyLeaseRepository.save(lease);
+    }
+
+    private void meter(
+        Long residentId,
+        String residentName,
+        String residentEmail,
+        String unitNumber,
+        String meterType,
+        String billingMonth,
+        BigDecimal previousReading,
+        BigDecimal currentReading,
+        BigDecimal unitPrice,
+        String submittedByName,
+        String status,
+        String note
+    ) {
+        UtilityMeterReading reading = new UtilityMeterReading();
+        reading.setResidentId(residentId);
+        reading.setResidentName(residentName);
+        reading.setResidentEmail(residentEmail);
+        reading.setUnitNumber(unitNumber);
+        reading.setMeterType(meterType);
+        reading.setBillingMonth(billingMonth);
+        reading.setPreviousReading(previousReading);
+        reading.setCurrentReading(currentReading);
+        reading.setUsageAmount(currentReading.subtract(previousReading));
+        reading.setUnitPrice(unitPrice);
+        reading.setTotalAmount(currentReading.subtract(previousReading).multiply(unitPrice));
+        reading.setSubmittedByName(submittedByName);
+        reading.setStatus(status);
+        reading.setNote(note);
+        utilityMeterReadingRepository.save(reading);
     }
 }

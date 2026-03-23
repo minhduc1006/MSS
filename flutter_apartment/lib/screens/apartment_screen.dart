@@ -431,7 +431,10 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
 
   void _focusSearch() {
     FocusScope.of(context).requestFocus(_searchFocusNode);
-    showAppSnack(context, 'Search apartment administration is ready');
+    _searchController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _searchController.text.length,
+    );
   }
 
   Future<void> _createUnit() async {
@@ -487,9 +490,13 @@ class _ApartmentScreenState extends State<ApartmentScreen> {
                         : residentController.text.trim(),
                   );
                   if (!dialogContext.mounted || !mounted) return;
-                  setState(() => _selectedUnit = created.unitNumber);
+                  setState(() {
+                    _selectedUnit = created.unitNumber;
+                    _draftUnits.removeWhere(
+                        (item) => item.unitNumber == created.unitNumber);
+                    _draftUnits.insert(0, created);
+                  });
                   Navigator.pop(dialogContext);
-                  _reload();
                   showAppSnack(context, 'Apartment administration created');
                 } catch (error) {
                   if (!dialogContext.mounted || !mounted) return;

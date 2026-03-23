@@ -130,4 +130,58 @@ public class BillingController {
     public BillingDtos.UnitItem deactivateApartment(@PathVariable Long unitId) {
         return service.deactivateApartment(unitId);
     }
+
+    @GetMapping("/tenancies")
+    public BillingDtos.TenancyOverview tenancies() {
+        return service.tenancies();
+    }
+
+    @PostMapping("/tenancies")
+    public BillingDtos.TenancyItem createTenancy(@RequestBody BillingDtos.CreateTenancyRequest request) {
+        return service.createTenancy(request);
+    }
+
+    @PutMapping("/tenancies/{tenancyId}")
+    public BillingDtos.TenancyItem updateTenancy(@PathVariable Long tenancyId, @RequestBody BillingDtos.CreateTenancyRequest request) {
+        return service.updateTenancy(tenancyId, request);
+    }
+
+    @PostMapping("/tenancies/{tenancyId}/status")
+    public BillingDtos.TenancyItem updateTenancyStatus(
+        @PathVariable Long tenancyId,
+        @RequestBody BillingDtos.UpdateTenancyStatusRequest request
+    ) {
+        return service.updateTenancyStatus(tenancyId, request);
+    }
+
+    @GetMapping("/utilities/meters")
+    public BillingDtos.UtilityMeterOverview utilityMeters() {
+        return service.utilityMeters();
+    }
+
+    @PostMapping("/utilities/meters")
+    public BillingDtos.UtilityMeterItem createUtilityMeter(@RequestBody BillingDtos.CreateUtilityMeterRequest request) {
+        return service.createUtilityMeter(request);
+    }
+
+    @PutMapping("/utilities/meters/{meterId}")
+    public BillingDtos.UtilityMeterItem updateUtilityMeter(
+        @PathVariable Long meterId,
+        @RequestBody BillingDtos.CreateUtilityMeterRequest request
+    ) {
+        return service.updateUtilityMeter(meterId, request);
+    }
+
+    @PostMapping("/utilities/meters/{meterId}/status")
+    public BillingDtos.UtilityMeterItem updateUtilityMeterStatus(
+        @PathVariable Long meterId,
+        @RequestBody BillingDtos.UpdateUtilityMeterStatusRequest request
+    ) {
+        return service.updateUtilityMeterStatus(meterId, request);
+    }
+
+    @PostMapping("/utilities/meters/{meterId}/generate-invoice")
+    public BillingDtos.BillItem generateUtilityInvoice(@PathVariable Long meterId) {
+        return service.generateUtilityInvoice(meterId);
+    }
 }

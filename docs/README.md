@@ -10,11 +10,12 @@ The project is an apartment management system built as Spring Boot microservices
 
 | Module | Type | Default Port | Current Role |
 | --- | --- | --- | --- |
+| `be_microservices/gateway-service` | Spring Boot Gateway | `8080` | API gateway routing auth, billing, facility, security, and operations APIs through one entry point |
 | `be_microservices/auth-service` | Spring Boot | `8081` | Login, password reset, resident/staff management, account lookup |
-| `be_microservices/billing-service` | Spring Boot | `8082` | Billing overview, invoice CRUD, invoice email, PayOS checkout, apartment admin |
+| `be_microservices/billing-service` | Spring Boot | `8082` | Billing overview, invoice CRUD, PayOS, apartment admin, tenancy, utility meters |
 | `be_microservices/facility-service` | Spring Boot | `8083` | Facilities, maintenance logs, resident bookings, announcements, resident services |
 | `be_microservices/security-service` | Spring Boot | `8084` | Incident management, SOS trigger, history |
-| `be_microservices/operations-service` | Spring Boot | `8085` | Activity feed and staff task assignment |
+| `be_microservices/operations-service` | Spring Boot | `8085` | Activity feed, staff tasks, package desk, complaints, resident ratings, shift roster |
 | `flutter_apartment` | Flutter app | N/A | Primary client, most complete and most aligned with backend |
 | `fe_react` | React + Vite + Express dev server | `3000` in dev | Secondary portal, only partly connected to backend |
 
@@ -28,18 +29,21 @@ The backend exposes real endpoints for:
 - resident CRUD and staff CRUD
 - billing overview, invoice create/update/status/deactivate, invoice email, PayOS checkout/webhook
 - apartment unit create/update/status/deactivate
+- tenancy / lease portfolio
+- utility meter submission and utility invoice generation
 - facility create/update/status/deactivate and maintenance logs
 - resident bookings and announcements
 - security incident create/update/status/deactivate, SOS, and history
-- operations activity and staff task creation
+- operations activity, staff task creation, package/lost-found, complaint tickets, resident service ratings, and shift roster
 
 ### Flutter app
 
 `flutter_apartment` is the main working client. The route map in `lib/main.dart` covers:
 
 - admin: dashboard, activity, residents, staff, billing, facilities, apartment, security
-- resident: dashboard, bills, bookings, security, account
-- staff: dashboard, facilities, security, settings
+- admin: leasing & utilities, operations hub
+- resident: dashboard, bills, bookings, security, account, support desk
+- staff: dashboard, facilities, security, settings, roster
 - login and reset-password flow
 
 Important implemented flows in Flutter:
@@ -50,6 +54,10 @@ Important implemented flows in Flutter:
 - resident service booking and resident announcements
 - admin-to-staff assignment flow through `operations-service`
 - staff facilities queue showing assigned work only
+- admin lease portfolio and utility meter workspace
+- admin operations hub for package desk, complaints, and shift roster
+- resident support desk for package tracking, complaints, and service rating
+- staff roster view with complaint status updates
 
 ### React portal
 
@@ -57,17 +65,31 @@ Important implemented flows in Flutter:
 
 Real API-backed pages:
 
+- `/`
 - `/login`
 - `/reset-password`
 - `/reset-password/new`
 - `/admin/billing`
+- `/admin/leasing`
+- `/admin/ops`
+- `/resident/bills`
 
 Pages that still use hard-coded or local-only data:
 
 - most dashboards
-- resident pages
+- most resident pages outside bills
 - staff pages
 - resident/staff/security/facility/apartment admin views outside the billing page
+
+The new `/` landing page is public-facing and intended for prospective renters to review live building metrics, availability, and amenity health before entering the portal.
+
+The React admin portal now also includes:
+
+- lease portfolio and utility meter submissions
+- parcel / lost & found desk
+- complaint assignment and resolution
+- resident service rating visibility
+- staff shift and duty roster
 
 The Google auth helper route `/api/auth/url` exists only in `fe_react/server.ts`, so it works in the Express dev server flow and is not part of the static Vite build by itself.
 
@@ -135,6 +157,7 @@ Flutter compile-time overrides:
 
 React environment variables:
 
+- `VITE_API_BASE`
 - `VITE_AUTH_API_BASE`
 - `VITE_BILLING_API_BASE`
 

@@ -1,4 +1,22 @@
 services:
+  gateway-service:
+    build:
+      context: ./gateway-service
+    environment:
+      AUTH_SERVICE_URI: http://auth-service:8081
+      BILLING_SERVICE_URI: http://billing-service:8082
+      FACILITY_SERVICE_URI: http://facility-service:8083
+      SECURITY_SERVICE_URI: http://security-service:8084
+      OPERATIONS_SERVICE_URI: http://operations-service:8085
+    depends_on:
+      - auth-service
+      - billing-service
+      - facility-service
+      - security-service
+      - operations-service
+    ports:
+      - "8080:8080"
+
   postgres:
     image: postgres:16
     container_name: mss-microservices-postgres

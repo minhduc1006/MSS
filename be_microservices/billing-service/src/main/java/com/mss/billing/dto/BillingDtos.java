@@ -37,4 +37,68 @@ public final class BillingDtos {
     public record UpdateApartmentUnitStatusRequest(String status) {}
     public record UnitItem(Long id, String unitNumber, String tower, String unitType, String occupancyStatus, String residentName, BigDecimal balance) {}
     public record ApartmentStats(long totalUnits, long occupiedUnits, List<UnitItem> units) {}
+    public record CreateTenancyRequest(
+        Long residentId,
+        String residentName,
+        String residentEmail,
+        String unitNumber,
+        String tower,
+        String leaseType,
+        LocalDate startDate,
+        LocalDate endDate,
+        BigDecimal monthlyRent,
+        BigDecimal securityDeposit,
+        String status,
+        String notes
+    ) {}
+    public record UpdateTenancyStatusRequest(String status) {}
+    public record TenancyItem(
+        Long id,
+        Long residentId,
+        String residentName,
+        String residentEmail,
+        String unitNumber,
+        String tower,
+        String leaseType,
+        LocalDate startDate,
+        LocalDate endDate,
+        BigDecimal monthlyRent,
+        BigDecimal securityDeposit,
+        String status,
+        String notes
+    ) {}
+    public record TenancyOverview(long activeLeases, BigDecimal monthlyRecurringRevenue, List<TenancyItem> leases) {}
+    public record CreateUtilityMeterRequest(
+        Long residentId,
+        String residentName,
+        String residentEmail,
+        String unitNumber,
+        String meterType,
+        String billingMonth,
+        BigDecimal previousReading,
+        BigDecimal currentReading,
+        BigDecimal unitPrice,
+        String submittedByName,
+        String status,
+        String note
+    ) {}
+    public record UpdateUtilityMeterStatusRequest(String status) {}
+    public record UtilityMeterItem(
+        Long id,
+        Long residentId,
+        String residentName,
+        String residentEmail,
+        String unitNumber,
+        String meterType,
+        String billingMonth,
+        BigDecimal previousReading,
+        BigDecimal currentReading,
+        BigDecimal usageAmount,
+        BigDecimal unitPrice,
+        BigDecimal totalAmount,
+        String submittedByName,
+        String status,
+        String note
+    ) {}
+    public record UtilityMeterOverview(BigDecimal totalBilled, long pendingSubmissions, List<UtilityMeterItem> meters) {}
 }

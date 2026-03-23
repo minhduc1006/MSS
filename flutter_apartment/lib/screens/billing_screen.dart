@@ -319,7 +319,10 @@ class _BillingScreenState extends State<BillingScreen> {
 
   void _focusSearch() {
     FocusScope.of(context).requestFocus(_searchFocusNode);
-    showAppSnack(context, 'Billing & payment search is ready');
+    _searchController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _searchController.text.length,
+    );
   }
 
   Future<void> _createInvoice() async {
@@ -424,8 +427,25 @@ class _BillingScreenState extends State<BillingScreen> {
                           description: descriptionController.text.trim(),
                         );
                         if (!mounted) return;
+                        final createdInvoice = InvoiceItem(
+                          id: created.id,
+                          residentId: selectedResident.id,
+                          unit: selectedResident.unit,
+                          resident: selectedResident.name,
+                          amount: created.amount,
+                          status: created.status,
+                          date: created.date,
+                          title: created.title,
+                          category: created.type,
+                          description: descriptionController.text.trim(),
+                        );
                         navigator.pop();
-                        _reload();
+                        setState(() {
+                          _selectedInvoiceKey = _invoiceKey(createdInvoice);
+                          _draftInvoices.removeWhere(
+                              (item) => _invoiceKey(item) == _invoiceKey(createdInvoice));
+                          _draftInvoices.insert(0, createdInvoice);
+                        });
                         showAppSnack(context, '${created.title} created and invoice email queued');
                       } catch (error) {
                         if (!dialogContext.mounted) return;

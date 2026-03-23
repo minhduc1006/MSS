@@ -317,13 +317,24 @@ class _StaffListScreenState extends State<StaffListScreen> {
                 try {
                   final navigator = Navigator.of(dialogContext);
                   if (existing == null) {
-                    await AppApiService.instance.createStaff(
+                    final created = await AppApiService.instance.createStaff(
                       fullName: nameController.text.trim(),
                       jobTitle: jobTitleController.text.trim(),
                       shift: selectedShift,
                       email: emailController.text.trim(),
                       phone: phoneController.text.trim(),
                     );
+                    final currentStaff = await _staffFuture
+                        .catchError((_) => const <StaffItem>[]);
+                    if (!mounted) {
+                      return;
+                    }
+                    navigator.pop();
+                    setState(() {
+                      _staffFuture = Future.value([created, ...currentStaff]);
+                    });
+                    showAppSnack(this.context, 'Staff member created');
+                    return;
                   } else {
                     await AppApiService.instance.updateStaff(
                       staffId: existing.id!,
@@ -340,7 +351,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                   }
                   navigator.pop();
                   _reload();
-                  showAppSnack(this.context, existing == null ? 'Staff member created' : 'Staff member updated');
+                  showAppSnack(this.context, 'Staff member updated');
                 } catch (error) {
                   setModalState(() {
                     errorMessage = error.toString().replaceFirst('Exception: ', '');
