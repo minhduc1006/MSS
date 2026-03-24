@@ -51,7 +51,7 @@ export default function AdminDashboard() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
+            className="ui-hover-lift ui-hover-accent flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <Users className="text-[#137fec] bg-[#137fec]/10 p-2 rounded-lg w-10 h-10" />
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
+            className="ui-hover-lift ui-hover-accent flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <Bed className="text-orange-500 bg-orange-500/10 p-2 rounded-lg w-10 h-10" />
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
+            className="ui-hover-lift ui-hover-accent flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <Wallet className="text-red-500 bg-red-500/10 p-2 rounded-lg w-10 h-10" />
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
+            className="ui-hover-lift ui-hover-accent flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <Wrench className="text-purple-500 bg-purple-500/10 p-2 rounded-lg w-10 h-10" />
@@ -115,21 +115,21 @@ export default function AdminDashboard() {
         <div className="mb-6 grid gap-3 lg:grid-cols-3">
           <button 
             onClick={() => navigate("/admin/residents")}
-            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 bg-[#137fec] text-white gap-2 text-base font-bold shadow-lg shadow-[#137fec]/25 active:scale-95 transition-transform"
+            className="ui-hover-soft flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 bg-[#137fec] text-white gap-2 text-base font-bold shadow-lg shadow-[#137fec]/25 active:scale-95 transition-transform"
           >
             <Plus className="w-5 h-5" />
             <span>Resident Management</span>
           </button>
           <button 
             onClick={() => navigate("/admin/leasing")}
-            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 border border-slate-200 bg-white text-slate-900 gap-2 text-base font-bold shadow-sm active:scale-95 transition-transform dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+            className="ui-hover-soft ui-hover-accent flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 border border-slate-200 bg-white text-slate-900 gap-2 text-base font-bold shadow-sm active:scale-95 transition-transform dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
           >
             <KeyRound className="w-5 h-5 text-[#137fec]" />
             <span>Leasing & Utilities</span>
           </button>
           <button 
             onClick={() => navigate("/admin/ops")}
-            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 border border-slate-200 bg-white text-slate-900 gap-2 text-base font-bold shadow-sm active:scale-95 transition-transform dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+            className="ui-hover-soft ui-hover-accent flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 border border-slate-200 bg-white text-slate-900 gap-2 text-base font-bold shadow-sm active:scale-95 transition-transform dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
           >
             <ClipboardList className="w-5 h-5 text-[#137fec]" />
             <span>Operations Hub</span>
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
           </div>
           <div className="space-y-3 xl:grid xl:grid-cols-3 xl:gap-4 xl:space-y-0">
             {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+              <div key={activity.id} className="ui-hover-lift ui-hover-accent flex items-start gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
                 <div className={`size-10 rounded-full flex items-center justify-center shrink-0 ${activity.color}`}>
                   <activity.icon className="w-5 h-5" />
                 </div>
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
                     <p className="text-xs text-slate-500 font-medium">Onboard a new tenant</p>
                   </div>
                 </div>
-                <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                <button onClick={() => setIsAddModalOpen(false)} className="ui-hover-soft p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>

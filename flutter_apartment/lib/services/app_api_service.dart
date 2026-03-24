@@ -52,16 +52,19 @@ class AppApiService {
   Future<SessionUser> login({
     required String email,
     required String password,
-    required UserRole role,
+    UserRole? role,
   }) async {
+    final payload = <String, Object?>{
+      'email': email,
+      'password': password,
+    };
+    if (role != null) {
+      payload['role'] = role.name;
+    }
     final json = await _postJson(
       authBaseUri,
       '/api/auth/login',
-      {
-        'email': email,
-        'password': password,
-        'role': role.name,
-      },
+      payload,
     );
     return _sessionUserFromJson(json);
   }

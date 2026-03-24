@@ -32,14 +32,14 @@ export default function ResidentBills() {
   return (
     <Layout title="Billing & Payments" role="resident">
       <div className="p-4">
-        <div className="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="ui-hover-lift ui-hover-accent mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div>
             <h2 className="text-lg font-bold">Resident Bills</h2>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Synced with `billing-service` and PayOS checkout flow.</p>
           </div>
           <button
             onClick={() => void loadBills()}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+            className="ui-hover-soft ui-hover-accent inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
@@ -68,13 +68,13 @@ export default function ResidentBills() {
           <button
             disabled={pendingBills.length === 0 || isPayingId !== null}
             onClick={() => void payBill(pendingBills[0])}
-            className="flex-1 rounded-xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
+            className="ui-hover-soft flex-1 rounded-xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
           >
             Pay Now
           </button>
           <button
             onClick={() => void exportStatement()}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+            className="ui-hover-soft ui-hover-accent inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
           >
             <Download className="h-4 w-4" />
             Statement
@@ -188,7 +188,7 @@ function BillList({
   return (
     <div className="space-y-3">
       {bills.map((bill) => (
-        <div key={bill.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div key={bill.id} className="ui-hover-lift ui-hover-accent rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-start gap-3">
             <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${statusTone(bill.status)}`}>
               {bill.category === "parking" ? <ParkingCircle className="h-5 w-5" /> : isServiceBill(bill) ? <Home className="h-5 w-5" /> : <Bolt className="h-5 w-5" />}
@@ -212,7 +212,7 @@ function BillList({
                 <button
                   disabled={isPayingId === bill.id}
                   onClick={() => onPay(bill)}
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#137fec]/10 px-4 py-2.5 text-sm font-bold text-[#137fec] disabled:opacity-50"
+                  className="ui-hover-soft mt-4 inline-flex items-center gap-2 rounded-xl bg-[#137fec]/10 px-4 py-2.5 text-sm font-bold text-[#137fec] disabled:opacity-50"
                 >
                   {isPayingId === bill.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />}
                   Pay

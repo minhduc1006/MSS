@@ -68,7 +68,7 @@ export default function ResidentDashboard() {
             <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded">ACTIVE</span>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2 rounded-xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+            <div className="ui-hover-lift ui-hover-accent flex flex-col gap-2 rounded-xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
               <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                 <Wallet className="w-4 h-4" />
                 <p className="text-xs font-semibold uppercase tracking-wider">Balance</p>
@@ -76,7 +76,7 @@ export default function ResidentDashboard() {
               <p className="text-slate-900 dark:text-slate-100 text-2xl font-extrabold">${resident.balance.toLocaleString()}</p>
               <p className="text-red-500 text-xs font-bold">Due in 4 days</p>
             </div>
-            <div className="flex flex-col gap-2 rounded-xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+            <div className="ui-hover-lift ui-hover-accent flex flex-col gap-2 rounded-xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
               <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                 <Calendar className="w-4 h-4" />
                 <p className="text-xs font-semibold uppercase tracking-wider">Next Due</p>
@@ -95,7 +95,7 @@ export default function ResidentDashboard() {
               <button 
                 key={action.id}
                 onClick={() => handleAction(action.id)}
-                className={`flex flex-col items-center justify-center min-w-[100px] h-24 gap-2 rounded-xl shadow-sm cursor-pointer active:scale-95 transition-all ${action.color}`}
+                className={`ui-hover-soft ${action.id === "pay" ? "" : "ui-hover-accent"} flex flex-col items-center justify-center min-w-[100px] h-24 gap-2 rounded-xl shadow-sm cursor-pointer active:scale-95 transition-all ${action.color}`}
               >
                 <action.icon className="w-6 h-6" />
                 <span className="text-xs font-bold">{action.label}</span>
@@ -124,7 +124,7 @@ export default function ResidentDashboard() {
                   animate={{ opacity: 1, scale: 1 }}
                   key={booking.id}
                   onClick={() => navigate("/resident/bookings")}
-                  className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer hover:border-[#137fec] transition-all"
+                  className="ui-hover-lift ui-hover-accent flex items-center gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer transition-all"
                 >
                   <div className="size-12 rounded-lg bg-[#137fec]/10 text-[#137fec] flex items-center justify-center">
                     <booking.icon className="w-6 h-6" />
@@ -148,7 +148,7 @@ export default function ResidentDashboard() {
         <section>
           <h3 className="text-base font-bold mb-4">Building News</h3>
           <div className="space-y-4">
-            <div className="bg-[#137fec]/5 dark:bg-[#137fec]/10 border border-[#137fec]/20 p-4 rounded-xl">
+            <div className="ui-hover-lift rounded-xl border border-[#137fec]/20 bg-[#137fec]/5 p-4 dark:bg-[#137fec]/10">
               <div className="flex gap-3">
                 <div className="size-8 rounded-full bg-[#137fec] text-white flex items-center justify-center shrink-0">
                   <Bell className="w-4 h-4" />
