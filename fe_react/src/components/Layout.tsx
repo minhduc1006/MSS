@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { clearSession } from "../lib/api";
+import { getStoredTheme, setTheme } from "../lib/theme";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -24,16 +25,10 @@ interface LayoutProps {
 export default function Layout({ children, title = "Skyline Heights", role = "admin" }: LayoutProps) {
   const { showToast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return false;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(() => getStoredTheme() === "dark");
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
+    setIsDarkMode(getStoredTheme() === "dark");
   }, []);
 
   const handleLogout = () => {
@@ -51,11 +46,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    setTheme(newMode ? "dark" : "light");
     showToast(`${newMode ? 'Dark' : 'Light'} mode enabled`, "info");
   };
 
@@ -126,7 +117,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
                     <p className="text-[10px] font-bold text-[#137fec] uppercase tracking-widest">{role} Portal</p>
                   </div>
                 </div>
-                <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                <button onClick={() => setIsMenuOpen(false)} className="ui-hover-soft p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
@@ -139,7 +130,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
                     to={item.path}
                     onClick={() => setIsMenuOpen(false)}
                     className={({ isActive }) => cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm",
+                      "ui-hover-soft flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm",
                       isActive 
                         ? "bg-[#137fec]/10 text-[#137fec]" 
                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -155,7 +146,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
                 
                 <button 
                   onClick={toggleDarkMode}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-sm transition-all"
+                  className="ui-hover-soft w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold text-sm transition-all"
                 >
                   <div className="flex items-center gap-3">
                     {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -177,7 +168,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
               <div className="p-6 border-t border-slate-100 dark:border-slate-800">
                 <button 
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-all active:scale-[0.98]"
+                  className="ui-hover-soft w-full flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-all active:scale-[0.98]"
                 >
                   <LogOut className="w-5 h-5" />
                   Sign Out
@@ -206,7 +197,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
                   to={item.path}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all",
+                      "ui-hover-soft flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all",
                       isActive
                         ? "bg-[#137fec] text-white shadow-lg shadow-blue-500/25"
                         : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/80",
@@ -222,7 +213,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
             <div className="mt-auto space-y-3 pt-6">
               <button
                 onClick={toggleDarkMode}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-[#137fec]/30 dark:border-slate-700 dark:bg-[#101922] dark:text-slate-200"
+                className="ui-hover-soft flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-[#137fec]/30 dark:border-slate-700 dark:bg-[#101922] dark:text-slate-200"
               >
                 <div className="flex items-center gap-3">
                   {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -234,7 +225,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
               </button>
               <button 
                 onClick={handleLogout}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 py-3 text-sm font-bold text-red-600 transition-all hover:bg-red-100 dark:bg-red-900/10"
+                className="ui-hover-soft flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 py-3 text-sm font-bold text-red-600 transition-all hover:bg-red-100 dark:bg-red-900/10"
               >
                 <LogOut className="h-5 w-5" />
                 Sign Out
@@ -264,7 +255,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
               <button 
                 onClick={() => setIsMenuOpen(true)}
                 className={cn(
-                  "flex size-10 items-center justify-center rounded-full text-slate-900 transition-colors hover:bg-[#137fec]/10 dark:text-slate-100",
+                  "ui-hover-soft flex size-10 items-center justify-center rounded-full text-slate-900 transition-colors hover:bg-[#137fec]/10 dark:text-slate-100",
                   isAdmin && "lg:hidden",
                 )}
               >
@@ -276,7 +267,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
               <div className="flex gap-2">
                 <button 
                   onClick={handleNotifications}
-                  className="flex size-10 items-center justify-center rounded-full text-[#137fec] transition-colors hover:bg-[#137fec]/10"
+                  className="ui-hover-soft flex size-10 items-center justify-center rounded-full text-[#137fec] transition-colors hover:bg-[#137fec]/10"
                 >
                   <Bell className="w-6 h-6" />
                 </button>
@@ -299,7 +290,7 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) => cn(
-                  "flex flex-1 flex-col items-center justify-center gap-1 transition-all",
+                  "ui-hover-soft flex flex-1 flex-col items-center justify-center gap-1 transition-all",
                   isActive ? "text-[#137fec]" : "text-slate-400 dark:text-slate-500"
                 )}
               >

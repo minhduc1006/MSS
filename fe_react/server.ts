@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -11,6 +12,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const db = new Database("building.db");
+const defaultAuthApiBase = process.env.AUTH_API_BASE?.trim() || "http://localhost:8080/api";
+
+type SessionUser = {
+  id: number;
+  fullName: string;
+  email: string;
+  role: "admin" | "resident" | "staff";
+  unitNumber: string | null;
+  tower: string | null;
+  avatarUrl: string | null;
+};
 
 // Initialize database
 db.exec(`
@@ -67,6 +79,22 @@ async function startServer() {
 
   app.use(express.json());
 
+  app.get("/downloads/android-apk", (req, res) => {
+    const apkPath = path.resolve(
+      __dirname,
+      "../flutter_apartment/build/app/outputs/flutter-apk/app-release.apk",
+    );
+
+    if (!fs.existsSync(apkPath)) {
+      res
+        .status(404)
+        .json({ message: "Release APK is not available yet. Build Flutter release first." });
+      return;
+    }
+
+    res.download(apkPath, "skyline-residences-release.apk");
+  });
+
   // API Routes
   app.get("/api/units", (req, res) => {
     const units = db.prepare("SELECT * FROM units").all();
@@ -91,9 +119,24 @@ async function startServer() {
 
   // Auth Routes (Mock for now, but structure for real OAuth)
   app.get("/api/auth/url", (req, res) => {
-    const redirectUri = `${process.env.APP_URL}/auth/callback`;
+    const configuredAppUrl = process.env.APP_URL?.trim();
+    const appUrl =
+      configuredAppUrl && !configuredAppUrl.startsWith("MY_APP_URL")
+        ? configuredAppUrl
+        : `${req.protocol}://${req.get("host")}`;
+    const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim();
+
+    if (!googleClientId || googleClientId === "mock_client_id") {
+      res.status(503).json({
+        message:
+          "Google Sign-In is not configured. Set GOOGLE_CLIENT_ID in fe_react/.env and register the redirect URI in Google Cloud Console.",
+      });
+      return;
+    }
+
+    const redirectUri = new URL("/auth/callback", appUrl).toString();
     const params = new URLSearchParams({
-      client_id: process.env.GOOGLE_CLIENT_ID || "mock_client_id",
+      client_id: googleClientId,
       redirect_uri: redirectUri,
       response_type: "code",
       scope: "openid email profile",
@@ -105,22 +148,7 @@ async function startServer() {
   });
 
   app.get("/auth/callback", (req, res) => {
-    // In a real app, exchange code for tokens here
-    res.send(`
-      <html>
-        <body>
-          <script>
-            if (window.opener) {
-              window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS' }, '*');
-              window.close();
-            } else {
-              window.location.href = '/';
-            }
-          </script>
-          <p>Authentication successful. This window should close automatically.</p>
-        </body>
-      </html>
-    `);
+    void handleGoogleCallback(req, res);
   });
 
   // Vite middleware for development
@@ -143,3 +171,165 @@ async function startServer() {
 }
 
 startServer();
+
+async function handleGoogleCallback(req: express.Request, res: express.Response) {
+  const configuredAppUrl = process.env.APP_URL?.trim();
+  const appUrl =
+    configuredAppUrl && !configuredAppUrl.startsWith("MY_APP_URL")
+      ? configuredAppUrl
+      : `${req.protocol}://${req.get("host")}`;
+  const redirectUri = new URL("/auth/callback", appUrl).toString();
+  const code = typeof req.query.code === "string" ? req.query.code : "";
+  const oauthError = typeof req.query.error === "string" ? req.query.error : "";
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim() ?? "";
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim() ?? "";
+
+  if (oauthError) {
+    res.send(renderPopupResponse({
+      type: "OAUTH_AUTH_ERROR",
+      message: `Google sign-in failed: ${oauthError}.`,
+    }, "Google sign-in was cancelled or denied."));
+    return;
+  }
+
+  if (!code) {
+    res.send(renderPopupResponse({
+      type: "OAUTH_AUTH_ERROR",
+      message: "Missing Google authorization code.",
+    }, "Missing Google authorization code."));
+    return;
+  }
+
+  if (!clientId || !clientSecret) {
+    res.send(renderPopupResponse({
+      type: "OAUTH_AUTH_ERROR",
+      message: "Google Sign-In is not fully configured on the React server.",
+    }, "Google Sign-In is not fully configured."));
+    return;
+  }
+
+  try {
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const message = await readErrorMessage(tokenResponse);
+      throw new Error(`Unable to exchange Google auth code. ${message}`);
+    }
+
+    const tokenPayload = (await tokenResponse.json()) as {
+      access_token?: string;
+    };
+    if (!tokenPayload.access_token) {
+      throw new Error("Google token response did not include an access token.");
+    }
+
+    const profileResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: {
+        Authorization: `Bearer ${tokenPayload.access_token}`,
+      },
+    });
+
+    if (!profileResponse.ok) {
+      const message = await readErrorMessage(profileResponse);
+      throw new Error(`Unable to read Google profile. ${message}`);
+    }
+
+    const profile = (await profileResponse.json()) as {
+      email?: string;
+      name?: string;
+      picture?: string;
+    };
+
+    if (!profile.email) {
+      throw new Error("Google account email is missing.");
+    }
+
+    const user = await resolvePortalUser(profile.email, profile.name, profile.picture);
+    res.send(renderPopupResponse({
+      type: "OAUTH_AUTH_SUCCESS",
+      user,
+    }, "Authentication successful. This window should close automatically."));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Google sign-in failed.";
+    res.send(renderPopupResponse({
+      type: "OAUTH_AUTH_ERROR",
+      message,
+    }, message));
+  }
+}
+
+async function resolvePortalUser(email: string, fallbackName?: string, fallbackAvatarUrl?: string): Promise<SessionUser> {
+  const response = await fetch(
+    `${defaultAuthApiBase}/users/by-email?email=${encodeURIComponent(email)}`,
+  );
+
+  if (response.ok) {
+    const user = (await response.json()) as SessionUser;
+    return {
+      ...user,
+      avatarUrl: user.avatarUrl ?? fallbackAvatarUrl ?? null,
+      fullName: user.fullName || fallbackName || email.split("@")[0],
+    };
+  }
+
+  if (email.toLowerCase().endsWith("@fpt.edu.vn")) {
+    throw new Error("FPT account could not be provisioned as admin.");
+  }
+
+  throw new Error("This Google account is not linked to any portal user.");
+}
+
+async function readErrorMessage(response: Response) {
+  const raw = await response.text();
+  try {
+    const parsed = JSON.parse(raw) as { error_description?: string; error?: string; message?: string };
+    return parsed.error_description || parsed.message || parsed.error || raw;
+  } catch {
+    return raw;
+  }
+}
+
+function renderPopupResponse(payload: object, fallbackText: string) {
+  const serialized = JSON.stringify(payload)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+
+  return `
+    <html>
+      <body>
+        <script>
+          const payload = ${serialized};
+          if (window.opener) {
+            window.opener.postMessage(payload, '*');
+            window.close();
+          } else {
+            window.location.href = '/login';
+          }
+        </script>
+        <p>${escapeHtml(fallbackText)}</p>
+      </body>
+    </html>
+  `;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}

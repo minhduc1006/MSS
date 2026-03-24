@@ -83,14 +83,14 @@ export default function ResidentBookings() {
   return (
     <Layout title="Resident Services" role="resident">
       <div className="p-4">
-        <div className="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="ui-hover-lift ui-hover-accent mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div>
             <h2 className="text-lg font-bold">Bookings, services, and announcements</h2>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">React is now using the same resident service flow family as Flutter.</p>
           </div>
           <button
             onClick={() => void loadData()}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+            className="ui-hover-soft ui-hover-accent inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
@@ -102,11 +102,11 @@ export default function ResidentBookings() {
           <StatCard label="Confirmed Slots" value={confirmedBookings.length} note="Ready to use" icon={CheckCircle2} tone="text-amber-600 bg-amber-100" />
         </section>
 
-        <div className="mb-4 rounded-2xl border border-[#137fec]/15 bg-[#137fec]/5 p-4 text-sm text-slate-600 dark:text-slate-300">
+        <div className="ui-hover-lift mb-4 rounded-2xl border border-[#137fec]/15 bg-[#137fec]/5 p-4 text-sm text-slate-600 dark:text-slate-300">
           Use the cards below to create facility bookings, parking subscriptions, and custom in-unit service requests just like the Flutter resident app.
         </div>
 
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="ui-hover-lift ui-hover-accent mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-3 flex items-start gap-3">
             <div className="rounded-xl bg-orange-100 p-3 text-orange-600">
               <HandPlatter className="h-5 w-5" />
@@ -118,7 +118,7 @@ export default function ResidentBookings() {
           </div>
           <button
             onClick={() => setIsRequestModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white"
+            className="ui-hover-soft inline-flex items-center gap-2 rounded-xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white"
           >
             <Sparkles className="h-4 w-4" />
             Request Custom Service
@@ -138,7 +138,7 @@ export default function ResidentBookings() {
                   <button
                     key={facility.id}
                     onClick={() => openBookingModal(facility)}
-                    className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all hover:border-[#137fec] dark:border-slate-800 dark:bg-slate-900"
+                    className="ui-hover-lift ui-hover-accent w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all dark:border-slate-800 dark:bg-slate-900"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -168,7 +168,7 @@ export default function ResidentBookings() {
                   <EmptyBlock text="No reservations yet." />
                 ) : (
                   bookings.map((booking) => (
-                    <div key={booking.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div key={booking.id} className="ui-hover-lift ui-hover-accent rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h4 className="text-sm font-bold">{booking.title}</h4>
@@ -198,7 +198,7 @@ export default function ResidentBookings() {
                   requests.map((request) => {
                     const canRespond = request.status.toLowerCase().includes("quoted");
                     return (
-                      <div key={request.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                      <div key={request.id} className="ui-hover-lift ui-hover-accent rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <h4 className="text-sm font-bold">{request.title}</h4>
@@ -220,13 +220,13 @@ export default function ResidentBookings() {
                           <div className="mt-4 flex gap-2">
                             <button
                               onClick={() => void respondToQuote(request.id, "confirm")}
-                              className="flex-1 rounded-xl bg-[#137fec] px-4 py-2.5 text-sm font-bold text-white"
+                              className="ui-hover-soft flex-1 rounded-xl bg-[#137fec] px-4 py-2.5 text-sm font-bold text-white"
                             >
                               Confirm Quote
                             </button>
                             <button
                               onClick={() => void respondToQuote(request.id, "reject")}
-                              className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+                              className="ui-hover-soft ui-hover-accent flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
                             >
                               Reject Quote
                             </button>
@@ -246,7 +246,7 @@ export default function ResidentBookings() {
                   <EmptyBlock text="No building announcements yet." />
                 ) : (
                   announcements.map((announcement) => (
-                    <div key={announcement.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div key={announcement.id} className="ui-hover-lift ui-hover-accent rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                       <div className="flex gap-3">
                         <div className="rounded-xl bg-[#137fec]/10 p-3 text-[#137fec]">
                           <Bell className="h-5 w-5" />
@@ -292,7 +292,7 @@ export default function ResidentBookings() {
                   <h3 className="text-lg font-bold">{selectedFacility.name}</h3>
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{selectedFacility.area ?? "Building service"} · {priceLabel(selectedFacility)}</p>
                 </div>
-                <button onClick={() => setSelectedFacility(null)} className="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <button onClick={() => setSelectedFacility(null)} className="ui-hover-soft rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800">
                   <X className="h-5 w-5 text-slate-400" />
                 </button>
               </div>
@@ -310,14 +310,14 @@ export default function ResidentBookings() {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => setSelectedPlan("monthly")}
-                        className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold ${selectedPlan === "monthly" ? "border-[#137fec] bg-[#137fec]/5 text-[#137fec]" : "border-slate-200 dark:border-slate-700"}`}
+                        className={`ui-hover-soft rounded-2xl border px-4 py-3 text-left text-sm font-bold ${selectedPlan === "monthly" ? "border-[#137fec] bg-[#137fec]/5 text-[#137fec]" : "border-slate-200 dark:border-slate-700"}`}
                       >
                         Monthly
                         <p className="mt-1 text-xs font-medium text-inherit">{formatCurrency(selectedFacility.monthlyPrice)}</p>
                       </button>
                       <button
                         onClick={() => setSelectedPlan("yearly")}
-                        className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold ${selectedPlan === "yearly" ? "border-[#137fec] bg-[#137fec]/5 text-[#137fec]" : "border-slate-200 dark:border-slate-700"}`}
+                        className={`ui-hover-soft rounded-2xl border px-4 py-3 text-left text-sm font-bold ${selectedPlan === "yearly" ? "border-[#137fec] bg-[#137fec]/5 text-[#137fec]" : "border-slate-200 dark:border-slate-700"}`}
                       >
                         Yearly
                         <p className="mt-1 text-xs font-medium text-inherit">{formatCurrency(selectedFacility.yearlyPrice)}</p>
@@ -332,7 +332,7 @@ export default function ResidentBookings() {
                             key={slot}
                             disabled={occupied}
                             onClick={() => setSelectedSlotCode(slot)}
-                            className={`rounded-xl px-3 py-3 text-sm font-bold ${occupied ? "cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-800" : selectedSlotCode === slot ? "bg-[#137fec] text-white" : "border border-slate-200 dark:border-slate-700"}`}
+                            className={`ui-hover-soft rounded-xl px-3 py-3 text-sm font-bold ${occupied ? "cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-800" : selectedSlotCode === slot ? "bg-[#137fec] text-white" : "border border-slate-200 dark:border-slate-700"}`}
                           >
                             {slot}
                           </button>
@@ -346,7 +346,7 @@ export default function ResidentBookings() {
                       <button
                         key={slot}
                         onClick={() => setSelectedTimeSlot(slot)}
-                        className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold ${selectedTimeSlot === slot ? "border-[#137fec] bg-[#137fec]/5 text-[#137fec]" : "border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200"}`}
+                        className={`ui-hover-soft flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm font-bold ${selectedTimeSlot === slot ? "border-[#137fec] bg-[#137fec]/5 text-[#137fec]" : "border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200"}`}
                       >
                         <span className="inline-flex items-center gap-2">
                           <Clock3 className="h-4 w-4" />
@@ -362,7 +362,7 @@ export default function ResidentBookings() {
               <button
                 disabled={isSubmittingBooking || !canSubmitBooking(selectedFacility, selectedSlotCode)}
                 onClick={() => void submitBooking()}
-                className="mt-6 w-full rounded-2xl bg-[#137fec] px-4 py-4 text-sm font-bold text-white disabled:opacity-50"
+                className="ui-hover-soft mt-6 w-full rounded-2xl bg-[#137fec] px-4 py-4 text-sm font-bold text-white disabled:opacity-50"
               >
                 {isSubmittingBooking ? "Creating booking..." : "Confirm Booking"}
               </button>
@@ -392,7 +392,7 @@ export default function ResidentBookings() {
                   <h3 className="text-lg font-bold">Request Custom Service</h3>
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Resident request goes to operations for assignment and quote.</p>
                 </div>
-                <button onClick={() => setIsRequestModalOpen(false)} className="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800">
+                <button onClick={() => setIsRequestModalOpen(false)} className="ui-hover-soft rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800">
                   <X className="h-5 w-5 text-slate-400" />
                 </button>
               </div>
@@ -407,7 +407,7 @@ export default function ResidentBookings() {
               <button
                 disabled={isSubmittingRequest}
                 onClick={() => void submitCustomRequest()}
-                className="mt-6 w-full rounded-2xl bg-[#137fec] px-4 py-4 text-sm font-bold text-white disabled:opacity-50"
+                className="ui-hover-soft mt-6 w-full rounded-2xl bg-[#137fec] px-4 py-4 text-sm font-bold text-white disabled:opacity-50"
               >
                 {isSubmittingRequest ? "Submitting..." : "Submit Request"}
               </button>

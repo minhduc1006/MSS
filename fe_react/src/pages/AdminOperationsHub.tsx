@@ -49,17 +49,17 @@ export default function AdminOperationsHub() {
   return (
     <Layout title="Operations Hub" role="admin">
       <div className="p-4 lg:p-6">
-        <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
+        <div className="ui-hover-lift ui-hover-accent mb-6 flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#137fec]">Operations Control</p>
             <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Packages, complaints, ratings, and shift roster</h1>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">This screen brings Parcel and Lost & Found, Complaint and Feedback with ratings, and Staff Shift and Duty Roster into React admin.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => void loadPage()} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold dark:border-slate-700">Refresh</button>
-            <button onClick={() => setModal("shift")} className="rounded-2xl border border-[#137fec]/20 bg-[#137fec]/10 px-4 py-3 text-sm font-bold text-[#137fec]">Schedule Shift</button>
-            <button onClick={() => setModal("package")} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold dark:border-slate-700">Log Package</button>
-            <button onClick={() => setModal("complaint")} className="rounded-2xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white">Log Complaint</button>
+            <button onClick={() => void loadPage()} className="ui-hover-soft ui-hover-accent rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold dark:border-slate-700">Refresh</button>
+            <button onClick={() => setModal("shift")} className="ui-hover-soft rounded-2xl border border-[#137fec]/20 bg-[#137fec]/10 px-4 py-3 text-sm font-bold text-[#137fec]">Schedule Shift</button>
+            <button onClick={() => setModal("package")} className="ui-hover-soft ui-hover-accent rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold dark:border-slate-700">Log Package</button>
+            <button onClick={() => setModal("complaint")} className="ui-hover-soft rounded-2xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white">Log Complaint</button>
           </div>
         </div>
 
@@ -72,7 +72,7 @@ export default function AdminOperationsHub() {
 
         {loading ? <StateBlock text="Loading operations hub..." /> : error ? <ErrorBlock text={error} /> : (
           <div className="space-y-6">
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <section className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold">Parcel and Lost & Found</h2>
@@ -82,7 +82,7 @@ export default function AdminOperationsHub() {
               </div>
               <div className="grid gap-4 xl:grid-cols-2">
                 {packages.map((record) => (
-                  <div key={record.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <div key={record.id} className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold">{record.itemName}</h3>
@@ -105,7 +105,7 @@ export default function AdminOperationsHub() {
                 {packages.length === 0 && <StateBlock text="No package or lost and found records found." />}
               </div>
             </section>
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <section className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold">Complaint and Feedback</h2>
@@ -115,7 +115,7 @@ export default function AdminOperationsHub() {
               </div>
               <div className="grid gap-4 xl:grid-cols-2">
                 {complaints.map((complaint) => (
-                  <div key={complaint.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <div key={complaint.id} className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold">{complaint.title}</h3>
@@ -125,7 +125,7 @@ export default function AdminOperationsHub() {
                       <StatusPill status={complaint.status} group="complaint" />
                     </div>
                     <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">{complaint.description}</p>
-                    <div className="mt-4 rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-900">
+                    <div className="ui-hover-soft mt-4 rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-900">
                       <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Assignment</p>
                       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                         <select value={assignmentDrafts[complaint.id] ?? String(complaint.assignedStaffId ?? "")} onChange={(e) => setAssignmentDrafts((c) => ({ ...c, [complaint.id]: e.target.value }))} className="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-950">
@@ -147,7 +147,7 @@ export default function AdminOperationsHub() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <section className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold">Staff Shift and Duty Roster</h2>
@@ -157,7 +157,7 @@ export default function AdminOperationsHub() {
               </div>
               <div className="grid gap-4 xl:grid-cols-2">
                 {shifts.map((shift) => (
-                  <div key={shift.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <div key={shift.id} className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold">{shift.staffName}</h3>
@@ -446,11 +446,11 @@ export default function AdminOperationsHub() {
 }
 
 function MetricCard({ label, value, note }: { label: string; value: string; note: string }) {
-  return <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs font-bold uppercase tracking-widest text-slate-400">{label}</p><p className="mt-3 text-2xl font-extrabold">{value}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{note}</p></div>;
+  return <div className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><p className="text-xs font-bold uppercase tracking-widest text-slate-400">{label}</p><p className="mt-3 text-2xl font-extrabold">{value}</p><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{note}</p></div>;
 }
 
 function ModalHeader({ title, subtitle, onClose }: { title: string; subtitle: string; onClose: () => void }) {
-  return <div className="mb-6 flex items-center justify-between gap-4"><div><h3 className="text-lg font-bold">{title}</h3><p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p></div><button onClick={onClose} className="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800">x</button></div>;
+  return <div className="mb-6 flex items-center justify-between gap-4"><div><h3 className="text-lg font-bold">{title}</h3><p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p></div><button onClick={onClose} className="ui-hover-soft rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800">x</button></div>;
 }
 
 function InfoPanel({ title, lines }: { title: string; lines: string[] }) {
@@ -458,12 +458,12 @@ function InfoPanel({ title, lines }: { title: string; lines: string[] }) {
 }
 
 function InfoTile({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-2xl bg-white px-3 py-3 shadow-sm dark:bg-slate-900"><p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{label}</p><p className="mt-2 text-sm font-bold text-slate-900 dark:text-slate-100">{value}</p></div>;
+  return <div className="ui-hover-soft rounded-2xl bg-white px-3 py-3 shadow-sm dark:bg-slate-900"><p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{label}</p><p className="mt-2 text-sm font-bold text-slate-900 dark:text-slate-100">{value}</p></div>;
 }
 
 function SmallButton({ label, onClick, tone }: { label: string; onClick: () => void; tone?: "primary" | "danger" | "success" }) {
   const classes = tone === "primary" ? "bg-[#137fec] text-white" : tone === "danger" ? "bg-red-50 text-red-600 dark:bg-red-900/10 dark:text-red-300" : tone === "success" ? "bg-emerald-600 text-white" : "border border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200";
-  return <button onClick={onClick} className={`rounded-2xl px-4 py-2 text-sm font-bold ${classes}`}>{label}</button>;
+  return <button onClick={onClick} className={`ui-hover-soft rounded-2xl px-4 py-2 text-sm font-bold ${classes}`}>{label}</button>;
 }
 
 function StatusPill({ status, group }: { status: string; group: "package" | "complaint" | "shift" }) {

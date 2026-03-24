@@ -57,7 +57,7 @@ export default function ActionGrid({ onAction, extraActions = false, visibleActi
         <button
           key={action.label}
           onClick={action.onClick}
-          className="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-all hover:border-[#137fec] active:scale-95 dark:border-slate-800 dark:bg-slate-900 lg:min-h-28"
+          className="ui-hover-lift ui-hover-accent flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm active:scale-95 dark:border-slate-800 dark:bg-slate-900 lg:min-h-28"
         >
           <div className={`p-2 rounded-lg ${action.color} text-white`}>
             <action.icon className="w-5 h-5" />

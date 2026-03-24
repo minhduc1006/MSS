@@ -24,12 +24,16 @@ public class AuthDomainService {
     }
 
     public AuthDtos.UserResponse login(AuthDtos.LoginRequest request) {
-        AppUser user = resolveUserByEmail(request.email(), request.role())
+        String requestedRole = normalizeRole(request.role());
+        AppUser user = resolveUserByEmail(request.email(), requestedRole)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
         if (!user.getPassword().equals(request.password())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
-        if (!user.getRole().equalsIgnoreCase(request.role()) || isDeactivated(user.getStatus())) {
+        if (requestedRole != null && !user.getRole().equalsIgnoreCase(requestedRole)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+        if (isDeactivated(user.getStatus())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
         return toUser(user);
@@ -238,7 +242,10 @@ public class AuthDomainService {
     }
 
     private java.util.Optional<AppUser> provisionFptAdmin(String email, String requestedRole) {
-        if (!email.toLowerCase().endsWith("@fpt.edu.vn") || !"admin".equalsIgnoreCase(requestedRole)) {
+        if (!email.toLowerCase().endsWith("@fpt.edu.vn")) {
+            return java.util.Optional.empty();
+        }
+        if (requestedRole != null && !"admin".equalsIgnoreCase(requestedRole)) {
             return java.util.Optional.empty();
         }
 
@@ -294,6 +301,13 @@ public class AuthDomainService {
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private String normalizeRole(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim().toLowerCase();
     }
 
     private AuthDtos.UserResponse toUser(AppUser user) {

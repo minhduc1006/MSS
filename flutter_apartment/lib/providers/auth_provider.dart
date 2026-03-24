@@ -139,8 +139,7 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      final resolvedRole = _roleForEmail(email, fallback: _role);
-      final user = await AppApiService.instance.login(email: email, password: password, role: resolvedRole);
+      final user = await AppApiService.instance.login(email: email, password: password);
       _currentUser = user;
       _role = user.role;
       return true;

@@ -42,16 +42,16 @@ export default function AdminLeasing() {
   return (
     <Layout title="Leasing & Utilities" role="admin">
       <div className="p-4 lg:p-6">
-        <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
+        <div className="ui-hover-lift ui-hover-accent mb-6 flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#137fec]">Revenue Control</p>
             <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Leases and utility readings on the web admin</h1>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">This screen matches the Flutter admin flow: create lease contracts, submit meter readings, approve them, and generate invoices.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => void loadPage()} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold dark:border-slate-700">Refresh</button>
-            <button onClick={() => setModal("meter")} className="rounded-2xl border border-[#137fec]/20 bg-[#137fec]/10 px-4 py-3 text-sm font-bold text-[#137fec]">Log Utility</button>
-            <button onClick={() => setModal("lease")} className="rounded-2xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white">Create Lease</button>
+            <button onClick={() => void loadPage()} className="ui-hover-soft ui-hover-accent rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold dark:border-slate-700">Refresh</button>
+            <button onClick={() => setModal("meter")} className="ui-hover-soft rounded-2xl border border-[#137fec]/20 bg-[#137fec]/10 px-4 py-3 text-sm font-bold text-[#137fec]">Log Utility</button>
+            <button onClick={() => setModal("lease")} className="ui-hover-soft rounded-2xl bg-[#137fec] px-4 py-3 text-sm font-bold text-white">Create Lease</button>
           </div>
         </div>
 
@@ -64,7 +64,7 @@ export default function AdminLeasing() {
 
         {loading ? <StateBlock text="Loading leasing administration..." /> : error ? <ErrorBlock text={error} /> : (
           <div className="space-y-6">
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <section className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold">Tenancy Portfolio</h2>
@@ -74,7 +74,7 @@ export default function AdminLeasing() {
               </div>
               <div className="grid gap-4 xl:grid-cols-2">
                 {leases.map((lease) => (
-                  <div key={lease.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <div key={lease.id} className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold">Unit {lease.unitNumber}</h3>
@@ -100,7 +100,7 @@ export default function AdminLeasing() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <section className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold">Utility Submissions</h2>
@@ -110,7 +110,7 @@ export default function AdminLeasing() {
               </div>
               <div className="grid gap-4 xl:grid-cols-2">
                 {meters.map((meter) => (
-                  <div key={meter.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+                  <div key={meter.id} className="ui-hover-lift ui-hover-accent rounded-3xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold">{meter.meterType} · Unit {meter.unitNumber}</h3>

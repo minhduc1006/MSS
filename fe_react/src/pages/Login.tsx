@@ -1,13 +1,26 @@
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Globe, Lock, Mail, HelpCircle, Building2 } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Globe,
+  Lock,
+  Mail,
+  HelpCircle,
+  Building2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/Toast";
-import { AUTH_API_BASE, ApiError, apiRequest, saveSession, type SessionUser } from "../lib/api";
+import {
+  AUTH_API_BASE,
+  ApiError,
+  apiRequest,
+  saveSession,
+  type SessionUser,
+} from "../lib/api";
 
 export default function Login() {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [role, setRole] = useState<"resident" | "admin" | "staff">("resident");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -16,7 +29,11 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      showToast("Nhập email và mật khẩu trước khi đăng nhập.", "error");
+      showToast("Please enter your email and password.", "error");
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      showToast("Please enter a valid email address.", "error");
       return;
     }
 
@@ -27,14 +44,9 @@ export default function Login() {
         body: JSON.stringify({
           email: email.trim(),
           password,
-          role,
         }),
       });
-      if (rememberMe) {
-        saveSession(user);
-      } else {
-        saveSession(user);
-      }
+      saveSession(user);
       navigate(resolveRoute(user.role), { replace: true });
     } catch (error) {
       showToast(mapLoginError(error), "error");
@@ -46,25 +58,55 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     try {
       const response = await fetch("/api/auth/url");
-      const { url } = await response.json();
-      const authWindow = window.open(url, "oauth_popup", "width=600,height=700");
+      const payload = (await response.json()) as {
+        url?: string;
+        message?: string;
+      };
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.message ?? "Unable to start Google sign-in.");
+      }
+
+      const authWindow = window.open(
+        payload.url,
+        "oauth_popup",
+        "width=600,height=700",
+      );
       if (!authWindow) {
         showToast("Please allow popups for Google sign-in.", "error");
       }
-    } catch {
-      showToast("Unable to start Google sign-in.", "error");
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Unable to start Google sign-in.",
+        "error",
+      );
     }
   };
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === "OAUTH_AUTH_SUCCESS") {
-        navigate(resolveRoute(role), { replace: true });
+        const user = event.data?.user as SessionUser | undefined;
+        if (!user) {
+          showToast("Google sign-in did not return a portal user.", "error");
+          return;
+        }
+        saveSession(user);
+        navigate(resolveRoute(user.role), { replace: true });
+      }
+      if (event.data?.type === "OAUTH_AUTH_ERROR") {
+        showToast(
+          typeof event.data?.message === "string"
+            ? event.data.message
+            : "Google sign-in failed.",
+          "error",
+        );
       }
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [navigate, role]);
+  }, [navigate, showToast]);
 
   return (
     <div className="min-h-screen bg-[#f3f6fb] px-4 py-3 font-['Manrope'] dark:bg-[#101922]">
@@ -88,35 +130,31 @@ export default function Login() {
                 <Building2 className="h-7 w-7" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">Skyline Heights</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Contact management for account access support.</p>
+                <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  Skyline Heights
+                </h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Contact management for account access support.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="px-2 py-6 text-center">
-          <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Welcome Back</h2>
-          <p className="mt-3 text-base text-slate-500 dark:text-slate-400">Enter your credentials to access the management portal</p>
-        </div>
-
-        <div className="mb-5 flex h-12 items-center rounded-2xl bg-slate-200 p-1 dark:bg-slate-800">
-          {(["resident", "staff", "admin"] as const).map((item) => (
-            <button
-              key={item}
-              onClick={() => setRole(item)}
-              className={`h-full flex-1 rounded-xl text-sm font-semibold transition-all ${
-                role === item ? "bg-white text-[#137fec] shadow-sm dark:bg-slate-700" : "text-slate-600 dark:text-slate-400"
-              }`}
-            >
-              {item === "resident" ? "Resident" : item === "staff" ? "Staff" : "Admin"}
-            </button>
-          ))}
+          <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+            Welcome Back
+          </h2>
+          <p className="mt-3 text-base text-slate-500 dark:text-slate-400">
+            Enter your credentials to access the management portal
+          </p>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">Email or Username</label>
+            <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">
+              Email address
+            </label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
               <input
@@ -130,7 +168,9 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">Password</label>
+            <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">
+              Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
               <input
@@ -144,8 +184,16 @@ export default function Login() {
                 className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-12 text-slate-900 outline-none focus:border-[#137fec] dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
                 type={showPassword ? "text" : "password"}
               />
-              <button type="button" onClick={() => setShowPassword((current) => !current)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
@@ -160,7 +208,10 @@ export default function Login() {
               />
               Remember me
             </label>
-            <button onClick={() => navigate("/reset-password")} className="ml-auto text-sm font-semibold text-[#137fec]">
+            <button
+              onClick={() => navigate("/reset-password")}
+              className="ml-auto text-sm font-semibold text-[#137fec]"
+            >
               Forgot password?
             </button>
           </div>
@@ -192,7 +243,9 @@ export default function Login() {
 
         <div className="py-8 text-center text-sm text-slate-500 dark:text-slate-500">
           Don&apos;t have an account?
-          <span className="ml-1 font-bold text-[#137fec]">Contact Management</span>
+          <span className="ml-1 font-bold text-[#137fec]">
+            Contact Management
+          </span>
         </div>
 
         <div className="flex items-center justify-center gap-5 pb-6 text-sm text-slate-400">
@@ -215,20 +268,44 @@ function mapLoginError(error: unknown) {
   const message = error instanceof Error ? error.message.toLowerCase().trim() : "";
   const statusCode = error instanceof ApiError ? error.statusCode : undefined;
 
-  if (statusCode === 401 || message.includes("invalid credentials") || message.includes("unauthorized")) {
-    return "Tài khoản hoặc mật khẩu không đúng.";
+  if (
+    statusCode === 400 ||
+    message.includes("validation") ||
+    message.includes("bad request")
+  ) {
+    return "Please enter a valid email address.";
   }
-  if (statusCode === 403 || message.includes("access denied") || message.includes("forbidden") || message.includes("permission")) {
-    return "Tài khoản không có quyền truy cập vào khu vực này.";
+  if (
+    statusCode === 401 ||
+    message.includes("invalid credentials") ||
+    message.includes("unauthorized")
+  ) {
+    return "Incorrect email or password.";
   }
-  if (message.includes("failed to fetch") || message.includes("network") || message.includes("timeout")) {
-    return "Không thể kết nối tới hệ thống đăng nhập. Vui lòng thử lại.";
+  if (
+    statusCode === 403 ||
+    message.includes("access denied") ||
+    message.includes("forbidden") ||
+    message.includes("permission")
+  ) {
+    return "This account does not have access to this area.";
   }
-  return "Không thể đăng nhập lúc này. Vui lòng thử lại.";
+  if (
+    message.includes("failed to fetch") ||
+    message.includes("network") ||
+    message.includes("timeout")
+  ) {
+    return "Unable to reach the login service right now. Please try again.";
+  }
+  return "Unable to sign in right now. Please try again.";
 }
 
 function resolveRoute(role: SessionUser["role"]) {
   if (role === "admin") return "/admin";
   if (role === "staff") return "/staff";
   return "/resident";
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }

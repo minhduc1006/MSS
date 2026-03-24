@@ -2,19 +2,15 @@ import Layout from "../components/Layout";
 import { Bell, LogOut, Moon, Shield, Sun, User } from "lucide-react";
 import { useState } from "react";
 import { clearSession } from "../lib/api";
+import { getStoredTheme, setTheme } from "../lib/theme";
 
 export default function StaffSettings() {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== "undefined") {
-      return document.documentElement.classList.contains("dark");
-    }
-    return false;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(() => getStoredTheme() === "dark");
 
   const toggleDarkMode = () => {
     const next = !isDarkMode;
     setIsDarkMode(next);
-    document.documentElement.classList.toggle("dark", next);
+    setTheme(next ? "dark" : "light");
   };
 
   const handleLogout = () => {
