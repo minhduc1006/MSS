@@ -23,6 +23,9 @@ export default function ResidentBills() {
 
   const pendingBills = useMemo(() => bills.filter((bill) => bill.status !== "Paid"), [bills]);
   const paidBills = useMemo(() => bills.filter((bill) => bill.status === "Paid"), [bills]);
+  const utilityBills = useMemo(() => bills.filter(isUtilityBill), [bills]);
+  const serviceBills = useMemo(() => bills.filter(isServiceBill), [bills]);
+  const otherBills = useMemo(() => bills.filter((bill) => !isUtilityBill(bill) && !isServiceBill(bill)), [bills]);
   const outstandingAmount = pendingBills.reduce((sum, bill) => sum + bill.amount, 0);
   const lastPayment = [...paidBills].sort((left, right) => right.dueDate.localeCompare(left.dueDate))[0];
 
@@ -48,6 +51,19 @@ export default function ResidentBills() {
           <MetricCard label="Last Payment" value={lastPayment ? formatDate(lastPayment.dueDate) : "No payments yet"} note={lastPayment ? formatCurrency(lastPayment.amount) : "Waiting for first payment"} />
         </section>
 
+        <section className="mb-6 grid grid-cols-2 gap-4">
+          <MetricCard
+            label="Service Fees"
+            value={formatCurrency(serviceBills.filter((bill) => bill.status !== "Paid").reduce((sum, bill) => sum + bill.amount, 0))}
+            note={`${serviceBills.length} records`}
+          />
+          <MetricCard
+            label="Utility Bills"
+            value={formatCurrency(utilityBills.filter((bill) => bill.status !== "Paid").reduce((sum, bill) => sum + bill.amount, 0))}
+            note={`${utilityBills.length} records`}
+          />
+        </section>
+
         <div className="mb-6 flex gap-3">
           <button
             disabled={pendingBills.length === 0 || isPayingId !== null}
@@ -66,53 +82,33 @@ export default function ResidentBills() {
         </div>
 
         <section>
-          <h3 className="mb-3 text-sm font-bold uppercase tracking-widest text-slate-400">Recent Bills</h3>
+          <h3 className="mb-3 text-sm font-bold uppercase tracking-widest text-slate-400">Utility Bills</h3>
           {isLoading ? (
             <Block text="Loading resident bills..." />
           ) : error ? (
             <ErrorBlock message={error} />
-          ) : bills.length === 0 ? (
-            <Block text="No bills available right now." />
           ) : (
-            <div className="space-y-3">
-              {bills.map((bill) => (
-                <div key={bill.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                  <div className="flex items-start gap-3">
-                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${statusTone(bill.status)}`}>
-                      {bill.category === "parking" ? <ParkingCircle className="h-5 w-5" /> : bill.category === "maintenance" ? <Home className="h-5 w-5" /> : <Bolt className="h-5 w-5" />}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h4 className="text-sm font-bold">{bill.title}</h4>
-                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatDate(bill.dueDate)}</p>
-                          {bill.description && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{bill.description}</p>}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold">{formatCurrency(bill.amount)}</p>
-                          <span className="mt-2 inline-block rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                            {bill.status}
-                          </span>
-                        </div>
-                      </div>
-
-                      {bill.status !== "Paid" && (
-                        <button
-                          disabled={isPayingId === bill.id}
-                          onClick={() => void payBill(bill)}
-                          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#137fec]/10 px-4 py-2.5 text-sm font-bold text-[#137fec] disabled:opacity-50"
-                        >
-                          {isPayingId === bill.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />}
-                          Pay
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <BillList bills={utilityBills} isPayingId={isPayingId} onPay={(bill) => void payBill(bill)} emptyText="No electricity or water bills right now." />
           )}
         </section>
+
+        <section className="mt-6">
+          <h3 className="mb-3 text-sm font-bold uppercase tracking-widest text-slate-400">Service Fees</h3>
+          {isLoading ? (
+            <Block text="Loading service fees..." />
+          ) : error ? (
+            <ErrorBlock message={error} />
+          ) : (
+            <BillList bills={serviceBills} isPayingId={isPayingId} onPay={(bill) => void payBill(bill)} emptyText="No service or parking fees right now." />
+          )}
+        </section>
+
+        {otherBills.length > 0 && (
+          <section className="mt-6">
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-widest text-slate-400">Other Charges</h3>
+            <BillList bills={otherBills} isPayingId={isPayingId} onPay={(bill) => void payBill(bill)} emptyText="No other charges right now." />
+          </section>
+        )}
       </div>
     </Layout>
   );
@@ -174,6 +170,62 @@ export default function ResidentBills() {
   }
 }
 
+function BillList({
+  bills,
+  isPayingId,
+  onPay,
+  emptyText,
+}: {
+  bills: BillItem[];
+  isPayingId: number | null;
+  onPay: (bill: BillItem) => void;
+  emptyText: string;
+}) {
+  if (bills.length === 0) {
+    return <Block text={emptyText} />;
+  }
+
+  return (
+    <div className="space-y-3">
+      {bills.map((bill) => (
+        <div key={bill.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-start gap-3">
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${statusTone(bill.status)}`}>
+              {bill.category === "parking" ? <ParkingCircle className="h-5 w-5" /> : isServiceBill(bill) ? <Home className="h-5 w-5" /> : <Bolt className="h-5 w-5" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-bold">{bill.title}</h4>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatDate(bill.dueDate)}</p>
+                  {bill.description && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{bill.description}</p>}
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold">{formatCurrency(bill.amount)}</p>
+                  <span className="mt-2 inline-block rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    {bill.status}
+                  </span>
+                </div>
+              </div>
+
+              {bill.status !== "Paid" && (
+                <button
+                  disabled={isPayingId === bill.id}
+                  onClick={() => onPay(bill)}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#137fec]/10 px-4 py-2.5 text-sm font-bold text-[#137fec] disabled:opacity-50"
+                >
+                  {isPayingId === bill.id ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />}
+                  Pay
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MetricCard({ label, value, note }: { label: string; value: string; note: string }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -196,6 +248,15 @@ function statusTone(status: string) {
   if (status === "Paid") return "bg-emerald-100 text-emerald-600";
   if (status === "Pending") return "bg-amber-100 text-amber-600";
   return "bg-rose-100 text-rose-600";
+}
+
+function isUtilityBill(bill: BillItem) {
+  return (bill.category ?? "").toLowerCase() === "utility";
+}
+
+function isServiceBill(bill: BillItem) {
+  const category = (bill.category ?? "").toLowerCase();
+  return category === "service" || category === "maintenance" || category === "parking";
 }
 
 function formatCurrency(value: number) {

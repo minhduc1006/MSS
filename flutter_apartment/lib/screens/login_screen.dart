@@ -74,48 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     url: AppMedia.loginHero,
                     height: 220,
                     borderRadius: BorderRadius.circular(24),
-                    overlay: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0x550F7AEC), Color(0xAA0B3B73)],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 20,
-                    child: InfoCard(
-                      color: Colors.white.withValues(alpha: 0.92),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 54,
-                            height: 54,
-                            decoration: BoxDecoration(
-                              color: AppTheme.brand.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(Icons.apartment_rounded, color: AppTheme.brand, size: 28),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Skyline Heights', style: Theme.of(context).textTheme.titleMedium),
-                                const SizedBox(height: 4),
-                                Text(context.t('contact_message'), style: Theme.of(context).textTheme.bodySmall),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -152,6 +110,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 obscureText: obscure,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock_rounded),
+                  hintText: '********',
+                  hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppTheme.textMuted.withValues(alpha: 0.7),
+                        letterSpacing: 2.4,
+                      ),
                   suffixIcon: IconButton(
                     onPressed: () => setState(() => obscure = !obscure),
                     icon: Icon(obscure ? Icons.visibility_rounded : Icons.visibility_off_rounded),

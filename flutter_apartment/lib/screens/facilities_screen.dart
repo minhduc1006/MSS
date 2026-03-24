@@ -629,7 +629,10 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
 
   void _focusSearch() {
     FocusScope.of(context).requestFocus(_searchFocusNode);
-    showAppSnack(context, 'Facility & service management search is ready');
+    _searchController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _searchController.text.length,
+    );
   }
 
   Future<void> _createFacility() async {
@@ -679,9 +682,13 @@ class _FacilitiesScreenState extends State<FacilitiesScreen> {
                     bookingMode: 'none',
                   );
                   if (!dialogContext.mounted || !mounted) return;
-                  setState(() => _selectedFacilityKey = _facilityKey(created));
+                  setState(() {
+                    _selectedFacilityKey = _facilityKey(created);
+                    _draftFacilities.removeWhere(
+                        (item) => _facilityKey(item) == _facilityKey(created));
+                    _draftFacilities.insert(0, created);
+                  });
                   Navigator.pop(dialogContext);
-                  _reload();
                   showAppSnack(
                       context, 'Facility & service management created');
                 } catch (error) {

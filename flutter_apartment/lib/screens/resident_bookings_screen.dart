@@ -870,9 +870,27 @@ class _ResidentBookingsScreenState extends State<ResidentBookingsScreen> {
                     if (!mounted) {
                       return;
                     }
+                    final currentData = await _screenFuture.catchError(
+                      (_) => const _ResidentBookingsData(
+                        bookings: <BookingItem>[],
+                        announcements: <AnnouncementItem>[],
+                        services: <MaintenanceFacility>[],
+                        customRequests: <CustomServiceRequestItem>[],
+                      ),
+                    );
+                    if (!mounted) {
+                      return;
+                    }
                     navigator.pop();
                     setState(() {
-                      _screenFuture = _loadData();
+                      _screenFuture = Future.value(
+                        _ResidentBookingsData(
+                          bookings: [created, ...currentData.bookings],
+                          announcements: currentData.announcements,
+                          services: currentData.services,
+                          customRequests: currentData.customRequests,
+                        ),
+                      );
                     });
                     showAppSnack(
                       context,
@@ -1327,9 +1345,38 @@ class _ResidentBookingsScreenState extends State<ResidentBookingsScreen> {
                                                 !mounted) {
                                               return;
                                             }
+                                            final currentData =
+                                                await _screenFuture.catchError(
+                                              (_) => const _ResidentBookingsData(
+                                                bookings: <BookingItem>[],
+                                                announcements:
+                                                    <AnnouncementItem>[],
+                                                services:
+                                                    <MaintenanceFacility>[],
+                                              customRequests:
+                                                    <CustomServiceRequestItem>[],
+                                              ),
+                                            );
+                                            if (!sheetContext.mounted ||
+                                                !mounted) {
+                                              return;
+                                            }
                                             Navigator.pop(sheetContext);
                                             setState(() {
-                                              _screenFuture = _loadData();
+                                              _screenFuture = Future.value(
+                                                _ResidentBookingsData(
+                                                  bookings: [
+                                                    created,
+                                                    ...currentData.bookings
+                                                  ],
+                                                  announcements:
+                                                      currentData.announcements,
+                                                  services:
+                                                      currentData.services,
+                                                  customRequests: currentData
+                                                      .customRequests,
+                                                ),
+                                              );
                                             });
                                             showAppSnack(context,
                                                 '${created.title} booked successfully. An invoice has been added to your bills.');
@@ -1499,7 +1546,7 @@ class _ResidentBookingsScreenState extends State<ResidentBookingsScreen> {
             FilledButton(
               onPressed: () async {
                 try {
-                  await AppApiService.instance.createCustomServiceRequest(
+                  final created = await AppApiService.instance.createCustomServiceRequest(
                     residentId: auth.currentUserId,
                     residentName: user?.fullName ?? 'Resident',
                     unitNumber: user?.unitNumber ?? 'N/A',
@@ -1513,9 +1560,27 @@ class _ResidentBookingsScreenState extends State<ResidentBookingsScreen> {
                   if (!sheetContext.mounted || !mounted) {
                     return;
                   }
+                  final currentData = await _screenFuture.catchError(
+                    (_) => const _ResidentBookingsData(
+                      bookings: <BookingItem>[],
+                      announcements: <AnnouncementItem>[],
+                      services: <MaintenanceFacility>[],
+                      customRequests: <CustomServiceRequestItem>[],
+                    ),
+                  );
+                  if (!sheetContext.mounted || !mounted) {
+                    return;
+                  }
                   Navigator.pop(sheetContext);
                   setState(() {
-                    _screenFuture = _loadData();
+                    _screenFuture = Future.value(
+                      _ResidentBookingsData(
+                        bookings: currentData.bookings,
+                        announcements: currentData.announcements,
+                        services: currentData.services,
+                        customRequests: [created, ...currentData.customRequests],
+                      ),
+                    );
                   });
                   showAppSnack(context, 'Custom service request submitted');
                 } catch (error) {

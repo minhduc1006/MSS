@@ -59,7 +59,7 @@ class _ResidentBillsScreenState extends State<ResidentBillsScreen>
       role: UserRole.resident,
       currentIndex: 1,
       actions: [
-        ShellAction(icon: Icons.search_rounded, onPressed: _reload),
+        ShellAction(icon: Icons.refresh_rounded, onPressed: _reload),
         ShellAction(icon: Icons.download_rounded, onPressed: () => _exportStatement(context)),
       ],
       body: FutureBuilder<List<BillItem>>(
@@ -72,6 +72,11 @@ class _ResidentBillsScreenState extends State<ResidentBillsScreen>
           final bills = snapshot.data ?? const <BillItem>[];
           final pending = bills.where((bill) => bill.status != 'Paid').toList();
           final paidBills = bills.where((bill) => bill.status == 'Paid').toList();
+          final utilityBills = bills.where(_isUtilityBill).toList();
+          final serviceBills = bills.where(_isServiceBill).toList();
+          final otherBills = bills
+              .where((bill) => !_isUtilityBill(bill) && !_isServiceBill(bill))
+              .toList();
           final lastPayment = _mostRecentBill(paidBills);
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -96,6 +101,41 @@ class _ResidentBillsScreenState extends State<ResidentBillsScreen>
                 ],
               ),
               const SizedBox(height: 16),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.1,
+                children: [
+                  MetricCard(
+                    label: 'Service Fees',
+                    value: formatMoney(
+                      serviceBills
+                          .where((bill) => bill.status != 'Paid')
+                          .fold<double>(0, (sum, bill) => sum + bill.amount),
+                    ),
+                    note: '${serviceBills.length} records',
+                    noteColor: const Color(0xFF137FEC),
+                    icon: Icons.home_repair_service_rounded,
+                    iconColor: const Color(0xFF137FEC),
+                  ),
+                  MetricCard(
+                    label: 'Utility Bills',
+                    value: formatMoney(
+                      utilityBills
+                          .where((bill) => bill.status != 'Paid')
+                          .fold<double>(0, (sum, bill) => sum + bill.amount),
+                    ),
+                    note: '${utilityBills.length} records',
+                    noteColor: const Color(0xFFF59E0B),
+                    icon: Icons.bolt_rounded,
+                    iconColor: const Color(0xFFF59E0B),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               ResponsiveButtonBar(
                 children: [
                   FilledButton.icon(
@@ -111,65 +151,128 @@ class _ResidentBillsScreenState extends State<ResidentBillsScreen>
                 ],
               ),
               const SizedBox(height: 18),
-              const SectionTitle('Recent Bills'),
-              const SizedBox(height: 12),
               if (snapshot.connectionState == ConnectionState.waiting && bills.isEmpty)
                 const Padding(
                   padding: EdgeInsets.all(24),
                   child: Center(child: CircularProgressIndicator()),
                 )
-              else
-                ...bills.map(
-                  (bill) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: InfoCard(
-                      child: Row(
-                        children: [
-                          SoftIcon(
-                            icon: bill.type == 'parking'
-                                ? Icons.local_parking_rounded
-                                : bill.type == 'maintenance'
-                                    ? Icons.home_repair_service_rounded
-                                    : Icons.bolt_rounded,
-                            color: statusColor(bill.status),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(bill.title, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: const Color(0xFF172033))),
-                                const SizedBox(height: 4),
-                                Text(bill.date, style: Theme.of(context).textTheme.bodyMedium),
-                                if ((bill.description ?? '').isNotEmpty) ...[
-                                  const SizedBox(height: 4),
-                                  Text(bill.description!, style: Theme.of(context).textTheme.bodySmall),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(formatMoney(bill.amount), style: Theme.of(context).textTheme.labelLarge?.copyWith(color: const Color(0xFF172033), fontSize: 18)),
-                              const SizedBox(height: 8),
-                              statusChip(bill.status),
-                              if (bill.status != 'Paid' && bill.id != null) ...[
-                                const SizedBox(height: 8),
-                                TextButton(onPressed: () => _payFirstPending(bill), child: Text(context.tr('Pay'))),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              else ...[
+                const SectionTitle('Utility Bills'),
+                const SizedBox(height: 12),
+                _billSection(context, utilityBills, emptyMessage: 'No electricity or water bills right now.'),
+                const SizedBox(height: 18),
+                const SectionTitle('Service Fees'),
+                const SizedBox(height: 12),
+                _billSection(context, serviceBills, emptyMessage: 'No service or parking fees right now.'),
+                if (otherBills.isNotEmpty) ...[
+                  const SizedBox(height: 18),
+                  const SectionTitle('Other Charges'),
+                  const SizedBox(height: 12),
+                  _billSection(context, otherBills, emptyMessage: 'No additional charges right now.'),
+                ],
+              ],
             ],
           );
         },
       ),
     );
+  }
+
+  Widget _billSection(
+    BuildContext context,
+    List<BillItem> bills, {
+    required String emptyMessage,
+  }) {
+    if (bills.isEmpty) {
+      return InfoCard(child: Text(emptyMessage));
+    }
+    return Column(
+      children: bills
+          .map(
+            (bill) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: InfoCard(
+                child: Row(
+                  children: [
+                    SoftIcon(
+                      icon: _billIcon(bill),
+                      color: statusColor(bill.status),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            bill.title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(color: const Color(0xFF172033)),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            bill.date,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          if ((bill.description ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              bill.description!,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          formatMoney(bill.amount),
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(
+                                color: const Color(0xFF172033),
+                                fontSize: 18,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        statusChip(bill.status),
+                        if (bill.status != 'Paid' && bill.id != null) ...[
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () => _payFirstPending(bill),
+                            child: Text(context.tr('Pay')),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  IconData _billIcon(BillItem bill) {
+    if (bill.type == 'parking') {
+      return Icons.local_parking_rounded;
+    }
+    if (_isServiceBill(bill)) {
+      return Icons.home_repair_service_rounded;
+    }
+    return Icons.bolt_rounded;
+  }
+
+  bool _isUtilityBill(BillItem bill) => bill.type.toLowerCase() == 'utility';
+
+  bool _isServiceBill(BillItem bill) {
+    final type = bill.type.toLowerCase();
+    return type == 'service' || type == 'maintenance' || type == 'parking';
   }
 
   Future<void> _payFirstPending(BillItem bill) async {

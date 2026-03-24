@@ -60,6 +60,15 @@ Base URL: `http://localhost:8082/api`
 | `PUT` | `/apartments/{unitId}` | Update apartment unit |
 | `POST` | `/apartments/{unitId}/status` | Update apartment unit status |
 | `DELETE` | `/apartments/{unitId}` | Deactivate apartment unit |
+| `GET` | `/tenancies` | Lease portfolio overview and records |
+| `POST` | `/tenancies` | Create tenancy / lease record |
+| `PUT` | `/tenancies/{tenancyId}` | Update tenancy / lease record |
+| `POST` | `/tenancies/{tenancyId}/status` | Update tenancy status |
+| `GET` | `/utilities/meters` | Utility meter overview and submissions |
+| `POST` | `/utilities/meters` | Create utility meter submission |
+| `PUT` | `/utilities/meters/{meterId}` | Update utility meter submission |
+| `POST` | `/utilities/meters/{meterId}/status` | Update utility meter status |
+| `POST` | `/utilities/meters/{meterId}/generate-invoice` | Generate utility invoice from a meter reading |
 
 ## facility-service
 
@@ -108,6 +117,21 @@ Base URL: `http://localhost:8085/api/operations`
 | `GET` | `/activity` | Admin activity feed |
 | `GET` | `/staff/{staffId}/tasks` | Task bundle for a staff member |
 | `POST` | `/tasks` | Create staff task |
+| `GET` | `/packages` | Package desk and lost-found queue |
+| `GET` | `/packages/resident/{residentId}` | Resident package / lost-found history |
+| `POST` | `/packages` | Create parcel or lost-found record |
+| `POST` | `/packages/{packageId}/status` | Update parcel or lost-found status |
+| `GET` | `/complaints` | Complaint / feedback ticket queue |
+| `GET` | `/complaints/resident/{residentId}` | Resident complaint history |
+| `GET` | `/complaints/staff/{staffId}` | Staff complaint assignment queue |
+| `POST` | `/complaints` | Create complaint or feedback ticket |
+| `POST` | `/complaints/{complaintId}/assign` | Assign complaint to staff |
+| `POST` | `/complaints/{complaintId}/status` | Update complaint status / response |
+| `POST` | `/complaints/{complaintId}/rating` | Save resident service rating after resolution |
+| `GET` | `/shifts` | Full shift roster |
+| `GET` | `/shifts/staff/{staffId}` | Shift roster for one staff member |
+| `POST` | `/shifts` | Create duty roster entry |
+| `POST` | `/shifts/{shiftId}` | Update duty roster entry |
 
 ## Client Usage Notes
 

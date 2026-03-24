@@ -1,8 +1,8 @@
-export const AUTH_API_BASE = import.meta.env.VITE_AUTH_API_BASE ?? "http://localhost:8081/api";
-export const BILLING_API_BASE = import.meta.env.VITE_BILLING_API_BASE ?? "http://localhost:8082/api";
-export const FACILITY_API_BASE = import.meta.env.VITE_FACILITY_API_BASE ?? "http://localhost:8083/api";
-export const SECURITY_API_BASE = import.meta.env.VITE_SECURITY_API_BASE ?? "http://localhost:8084/api/security";
-export const OPERATIONS_API_BASE = import.meta.env.VITE_OPERATIONS_API_BASE ?? "http://localhost:8085/api/operations";
+export const AUTH_API_BASE = import.meta.env.VITE_AUTH_API_BASE ?? "http://localhost:8080/api";
+export const BILLING_API_BASE = import.meta.env.VITE_BILLING_API_BASE ?? "http://localhost:8080/api";
+export const FACILITY_API_BASE = import.meta.env.VITE_FACILITY_API_BASE ?? "http://localhost:8080/api";
+export const SECURITY_API_BASE = import.meta.env.VITE_SECURITY_API_BASE ?? "http://localhost:8080/api/security";
+export const OPERATIONS_API_BASE = import.meta.env.VITE_OPERATIONS_API_BASE ?? "http://localhost:8080/api/operations";
 
 const SESSION_KEY = "mss-session";
 
@@ -181,6 +181,118 @@ export interface PaymentSession {
   paymentLinkId: string;
   checkoutUrl: string;
   status: string;
+}
+
+export interface ApartmentUnitItem {
+  id: number;
+  unitNumber: string;
+  tower: string;
+  unitType: string;
+  occupancyStatus: string;
+  residentName: string | null;
+  balance: number;
+}
+
+export interface ApartmentStats {
+  totalUnits: number;
+  occupiedUnits: number;
+  units: ApartmentUnitItem[];
+}
+
+export interface TenancyItem {
+  id: number;
+  residentId: number | null;
+  residentName: string;
+  residentEmail: string | null;
+  unitNumber: string;
+  tower: string;
+  leaseType: string;
+  startDate: string;
+  endDate: string;
+  monthlyRent: number;
+  securityDeposit: number;
+  status: string;
+  notes: string | null;
+}
+
+export interface TenancyOverview {
+  activeLeases: number;
+  monthlyRecurringRevenue: number;
+  leases: TenancyItem[];
+}
+
+export interface UtilityMeterItem {
+  id: number;
+  residentId: number | null;
+  residentName: string | null;
+  residentEmail: string | null;
+  unitNumber: string;
+  meterType: string;
+  billingMonth: string;
+  previousReading: number;
+  currentReading: number;
+  usageAmount: number;
+  unitPrice: number;
+  totalAmount: number;
+  submittedByName: string;
+  status: string;
+  note: string | null;
+}
+
+export interface UtilityMeterOverview {
+  totalBilled: number;
+  pendingSubmissions: number;
+  meters: UtilityMeterItem[];
+}
+
+export interface PackageItem {
+  id: number;
+  residentId: number | null;
+  residentName: string | null;
+  unitNumber: string | null;
+  recordType: string;
+  carrier: string | null;
+  itemName: string;
+  trackingCode: string | null;
+  location: string;
+  status: string;
+  reportedByName: string;
+  receivedAt: string;
+  pickedUpAt: string | null;
+  note: string | null;
+}
+
+export interface ComplaintItem {
+  id: number;
+  residentId: number;
+  residentName: string;
+  unitNumber: string;
+  category: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  assignedStaffId: number | null;
+  assignedStaffName: string | null;
+  responseNote: string | null;
+  residentRating: number | null;
+  residentReview: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+export interface StaffShiftItem {
+  id: number;
+  staffId: number;
+  staffName: string;
+  role: string;
+  shiftDate: string;
+  shiftLabel: string;
+  zone: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  note: string | null;
 }
 
 export async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {

@@ -76,6 +76,11 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                     icon: const Icon(Icons.shield_rounded),
                     label: Text(context.tr('Security')),
                   ),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.pushNamed(context, '/staff/roster'),
+                    icon: const Icon(Icons.schedule_rounded),
+                    label: const Text('Roster'),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),

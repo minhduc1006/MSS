@@ -9,6 +9,7 @@
         <module name="facility-service" />
         <module name="auth-service" />
         <module name="operations-service" />
+        <module name="gateway-service" />
         <module name="billing-service" />
         <module name="security-service" />
       </profile>
@@ -19,6 +20,7 @@
       <module name="auth-service" options="-parameters" />
       <module name="billing-service" options="-parameters" />
       <module name="facility-service" options="-parameters" />
+      <module name="gateway-service" options="-parameters" />
       <module name="operations-service" options="-parameters" />
       <module name="security-service" options="-parameters" />
     </option>

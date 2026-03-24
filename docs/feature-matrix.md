@@ -10,6 +10,7 @@ Status legend:
 
 | Domain | Flow | Backend | Flutter | React | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| Platform | Gateway service | Yes | Yes | Yes | Real | Spring Cloud Gateway proxies all microservices through `:8080`, and both clients now default to the gateway |
 | Auth | Login with role selection | Yes | Yes | Yes | Real | Flutter and React both map backend auth errors to controlled messages |
 | Auth | Password reset via OTP | Yes | Yes | Yes | Real | Request OTP, verify OTP, complete reset are implemented |
 | Auth | Change password | Yes | Yes | No | Partial | Available in backend and Flutter account flow |
@@ -22,6 +23,9 @@ Status legend:
 | Billing | Direct mark-as-paid | Yes | Yes | No | Real | Backend pay endpoint exists and Flutter uses it |
 | Billing | PayOS checkout + webhook | Yes | Yes | No | Real | Checkout URL comes from billing-service |
 | Billing | Apartment administration CRUD/status | Yes | Yes | No | Real | Implemented in billing-service and Flutter admin apartment screen |
+| Billing | Lease / tenancy management | Yes | Yes | Yes | Real | Billing-service exposes tenancy records and both Flutter admin and React admin have leasing workspaces |
+| Billing | Utility meter submission | Yes | Yes | Yes | Real | Utility meters are persisted in billing-service and visible in both admin clients |
+| Billing | Generate utility invoice from meter | Yes | Yes | Yes | Real | Admin can turn an approved meter submission into a billing record in Flutter and React |
 | Billing | Export/import/track/monitor/generate helpers | No | Yes | No | Partial | These dialogs and CSV helpers remain Flutter-local |
 | Facilities | Facility list | Yes | Yes | No | Real | Backend returns facilities, logs, and announcements bundle |
 | Facilities | Facility create/update/status/deactivate | Yes | Yes | No | Real | Admin Flutter screen now persists these actions |
@@ -39,13 +43,23 @@ Status legend:
 | Security | Schedule/notify/export/import/track/monitor/generate | No | Yes | No | Partial | Still UI helpers in Flutter |
 | Operations | Activity feed | Yes | Yes | No | Real | Admin activity screen uses backend |
 | Operations | Staff task queue | Yes | Yes | No | Real | Staff facilities screen loads assigned tasks only |
+| Operations | Parcel / package desk | Yes | Yes | Yes | Real | Package and lost-found records are persisted in operations-service and shown in Flutter and React admin |
+| Operations | Lost & Found management | Yes | Yes | Yes | Real | Shared queue with parcel desk plus resident-facing history and React admin handling |
+| Operations | Complaint / feedback tickets | Yes | Yes | Yes | Real | Residents can submit and admin/staff can resolve tickets through backend APIs; React admin also manages tickets |
+| Operations | Resident service rating | Yes | Yes | Yes | Real | Residents can rate resolved complaint handling and React admin surfaces rating signals |
+| Operations | Staff shift & duty roster | Yes | Yes | Yes | Real | Shift roster persists in operations-service and is shown in Flutter admin/staff and React admin |
 | Resident UX | Resident dashboard summary | Partial | Yes | Yes | Partial | Flutter loads real supporting data; React dashboard is mock-heavy |
-| Resident UX | Resident bills page | Yes | Yes | No | Real | Flutter resident bills uses backend |
+| Resident UX | Resident bills page | Yes | Yes | Yes | Real | Both Flutter and React resident bills use backend billing APIs |
 | Resident UX | Resident bookings page | Yes | Yes | No | Real | Includes services and parking subscription flow |
 | Resident UX | Resident account/settings | Partial | Yes | Yes | Partial | Flutter supports real account fetch/change password; React account page is mostly static |
+| Resident UX | Support desk for packages and complaints | Yes | Yes | No | Real | Resident Flutter now has a support desk route backed by operations-service |
 | Admin UX | Resident management assign/notify/export/import/track/monitor/generate | No | Yes | No | Partial | CRUD is real, but helper workflows are not persisted |
 | Admin UX | Staff settings pricing/config import-export | No | Yes | No | Demo | Local utility screen only |
-| React portal | Admin dashboards and module pages outside billing | No | No | Yes | Demo | Mostly static arrays and UI showcase pages |
+| Admin UX | Leasing & utilities workspace | Yes | Yes | Yes | Real | Both admin clients have a dedicated lease and utility route backed by billing-service |
+| Admin UX | Operations hub | Yes | Yes | Yes | Real | Both admin clients have package, complaint, and roster management backed by operations-service |
+| Staff UX | Duty roster and complaint updates | Yes | Yes | No | Real | Staff Flutter can review shifts and update complaint status |
+| React portal | Public landing page | Partial | No | Yes | Partial | Public page is live and fetches building availability + facility health from backend |
+| React portal | Admin dashboards and module pages outside billing | Partial | No | Yes | Partial | Billing, leasing, and operations hub are API-backed; other admin pages still lean on static arrays |
 
 ## Summary
 

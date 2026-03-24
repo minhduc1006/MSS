@@ -452,7 +452,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
 
   void _focusSearch() {
     FocusScope.of(context).requestFocus(_searchFocusNode);
-    showAppSnack(context, 'Security & reporting search is ready');
+    _searchController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _searchController.text.length,
+    );
   }
 
   Future<void> _createIncident() async {
@@ -511,8 +514,12 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     severity: severity,
                   );
                   if (!mounted) return;
-                  setState(() => _selectedIncidentKey = _incidentKey(created));
-                  _reload();
+                  setState(() {
+                    _selectedIncidentKey = _incidentKey(created);
+                    _draftIncidents.removeWhere(
+                        (item) => _incidentKey(item) == _incidentKey(created));
+                    _draftIncidents.insert(0, created);
+                  });
                   navigator.pop();
                   showAppSnack(context, 'Security & reporting created');
                 } catch (error) {

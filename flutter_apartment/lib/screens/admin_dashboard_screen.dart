@@ -104,6 +104,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: const Icon(Icons.badge_rounded),
                     label: Text(context.tr('Staff')),
                   ),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.pushNamed(context, '/admin/leasing'),
+                    icon: const Icon(Icons.description_rounded),
+                    label: const Text('Leasing & Utilities'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.pushNamed(context, '/admin/ops'),
+                    icon: const Icon(Icons.hub_rounded),
+                    label: const Text('Operations Hub'),
+                  ),
                 ],
               ),
               const SizedBox(height: 22),

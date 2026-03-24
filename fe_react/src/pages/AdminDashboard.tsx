@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from "react";
 import Layout from "../components/Layout";
 import { useToast } from "../components/Toast";
-import { Users, Bed, Wallet, Wrench, Plus, Receipt, Construction, ShieldCheck, X, Save, UserPlus } from "lucide-react";
+import { Users, Bed, Wallet, Wrench, Plus, Receipt, Construction, ShieldCheck, X, Save, UserPlus, KeyRound, ClipboardList } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router-dom";
 
@@ -112,13 +112,27 @@ export default function AdminDashboard() {
           </motion.div>
         </section>
 
-        <div className="mb-6 lg:max-w-sm">
+        <div className="mb-6 grid gap-3 lg:grid-cols-3">
           <button 
             onClick={() => navigate("/admin/residents")}
             className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 bg-[#137fec] text-white gap-2 text-base font-bold shadow-lg shadow-[#137fec]/25 active:scale-95 transition-transform"
           >
             <Plus className="w-5 h-5" />
-            <span>Open Resident Management</span>
+            <span>Resident Management</span>
+          </button>
+          <button 
+            onClick={() => navigate("/admin/leasing")}
+            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 border border-slate-200 bg-white text-slate-900 gap-2 text-base font-bold shadow-sm active:scale-95 transition-transform dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+          >
+            <KeyRound className="w-5 h-5 text-[#137fec]" />
+            <span>Leasing & Utilities</span>
+          </button>
+          <button 
+            onClick={() => navigate("/admin/ops")}
+            className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 border border-slate-200 bg-white text-slate-900 gap-2 text-base font-bold shadow-sm active:scale-95 transition-transform dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+          >
+            <ClipboardList className="w-5 h-5 text-[#137fec]" />
+            <span>Operations Hub</span>
           </button>
         </div>
 

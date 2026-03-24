@@ -343,7 +343,10 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
 
   void _focusSearch() {
     FocusScope.of(context).requestFocus(_searchFocusNode);
-    showAppSnack(context, 'Resident management search is ready');
+    _searchController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _searchController.text.length,
+    );
   }
 
   Future<void> _openCreateResidentDialog(BuildContext context) async {
@@ -396,7 +399,9 @@ class _ResidentListScreenState extends State<ResidentListScreen> {
                   navigator.pop();
                   setState(() {
                     _selectedResidentKey = _residentKey(created);
-                    _residentsFuture = AppApiService.instance.fetchResidents();
+                    _draftResidents.removeWhere(
+                        (item) => _residentKey(item) == _residentKey(created));
+                    _draftResidents.insert(0, created);
                   });
                   showAppSnack(this.context, 'Resident management created');
                 } catch (error) {

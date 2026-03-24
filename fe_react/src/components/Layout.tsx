@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useToast } from "./Toast";
 import { 
   LayoutDashboard, Users, ReceiptText, Shield, Settings, Bell, Menu,
-  Construction, Building2, LogOut, UserCheck, X, 
+  Construction, Building2, LogOut, UserCheck, X, KeyRound, ClipboardList,
   Moon, Sun
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -65,6 +65,8 @@ export default function Layout({ children, title = "Skyline Heights", role = "ad
         { icon: Users, label: "Residents", path: "/admin/residents" },
         { icon: UserCheck, label: "Staff", path: "/admin/staff" },
         { icon: ReceiptText, label: "Billing", path: "/admin/billing" },
+        { icon: KeyRound, label: "Leasing", path: "/admin/leasing" },
+        { icon: ClipboardList, label: "Operations", path: "/admin/ops" },
         { icon: Construction, label: "Facilities", path: "/admin/facilities" },
         { icon: Building2, label: "Apartment", path: "/admin/apartment" },
         { icon: Shield, label: "Security", path: "/admin/security" },
