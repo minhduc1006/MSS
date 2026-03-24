@@ -1,24 +1,4 @@
 [INFO] Scanning for projects...
-Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/maven-metadata.xml
-Downloading from central: https://repo.maven.apache.org/maven2/org/cyclonedx/maven-metadata.xml
-Downloading from central: https://repo.maven.apache.org/maven2/io/github/git-commit-id/maven-metadata.xml
-Downloading from central: https://repo.maven.apache.org/maven2/org/flywaydb/maven-metadata.xml
-Progress (1): 249 BProgress (2): 249 B | 234 BProgress (3): 249 B | 234 B | 243 BProgress (4): 249 B | 234 B | 243 B | 255 B                                           Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/maven-metadata.xml (249 B at 330 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/jooq/maven-metadata.xml
-Downloaded from central: https://repo.maven.apache.org/maven2/org/cyclonedx/maven-metadata.xml (243 B at 320 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/maven-metadata.xml
-Downloaded from central: https://repo.maven.apache.org/maven2/org/flywaydb/maven-metadata.xml (234 B at 307 B/s)
-Downloaded from central: https://repo.maven.apache.org/maven2/io/github/git-commit-id/maven-metadata.xml (255 B at 335 B/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/liquibase/maven-metadata.xml
-Downloading from central: https://repo.maven.apache.org/maven2/org/graalvm/buildtools/maven-metadata.xml
-Progress (1): 398 BProgress (2): 398 B | 242 BProgress (3): 398 B | 242 B | 394 BProgress (4): 398 B | 242 B | 394 B | 375 B                                           Downloaded from central: https://repo.maven.apache.org/maven2/org/jooq/maven-metadata.xml (398 B at 4.9 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml
-Downloaded from central: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/maven-metadata.xml (375 B at 4.2 kB/s)
-Downloaded from central: https://repo.maven.apache.org/maven2/org/liquibase/maven-metadata.xml (394 B at 4.4 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml
-Downloaded from central: https://repo.maven.apache.org/maven2/org/graalvm/buildtools/maven-metadata.xml (242 B at 2.7 kB/s)
-Progress (1): 4.6 kBProgress (1): 9.7 kBProgress (1): 14 kB Progress (2): 14 kB | 3.1 kBProgress (2): 14 kB | 7.7 kBProgress (2): 14 kB | 12 kB Progress (2): 14 kB | 17 kBProgress (2): 14 kB | 20 kBProgress (2): 14 kB | 21 kB                           Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml (14 kB at 216 kB/s)
-Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml (21 kB at 191 kB/s)
 [INFO] 
 [INFO] ------------------------< com.mss:auth-service >------------------------
 [INFO] Building auth-service 0.0.1-SNAPSHOT
@@ -59,23 +39,23 @@ Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/
 
  :: Spring Boot ::                (v3.5.0)
 
-2026-03-24T20:18:33.108+07:00  INFO 26268 --- [auth-service] [           main] com.mss.auth.AuthServiceApplication      : Starting AuthServiceApplication using Java 21.0.3 with PID 26268 (C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\auth-service\target\classes started by Chinh in C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\auth-service)
-2026-03-24T20:18:33.112+07:00  INFO 26268 --- [auth-service] [           main] com.mss.auth.AuthServiceApplication      : No active profile set, falling back to 1 default profile: "default"
-2026-03-24T20:18:34.890+07:00  INFO 26268 --- [auth-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-03-24T20:18:36.700+07:00  INFO 26268 --- [auth-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 1425 ms. Found 1 JPA repository interface.
-2026-03-24T20:18:37.677+07:00  INFO 26268 --- [auth-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
-2026-03-24T20:18:37.692+07:00  INFO 26268 --- [auth-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-03-24T20:18:37.692+07:00  INFO 26268 --- [auth-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.41]
-2026-03-24T20:18:37.779+07:00  INFO 26268 --- [auth-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-03-24T20:18:37.780+07:00  INFO 26268 --- [auth-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4566 ms
-2026-03-24T20:18:37.990+07:00  INFO 26268 --- [auth-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-03-24T20:18:38.082+07:00  INFO 26268 --- [auth-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.15.Final
-2026-03-24T20:18:38.141+07:00  INFO 26268 --- [auth-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-03-24T20:18:39.020+07:00  INFO 26268 --- [auth-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-03-24T20:18:39.060+07:00  INFO 26268 --- [auth-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-03-24T20:18:39.433+07:00  INFO 26268 --- [auth-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@2ae3235e
-2026-03-24T20:18:39.435+07:00  INFO 26268 --- [auth-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-03-24T20:18:39.591+07:00  INFO 26268 --- [auth-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-03-24T22:47:49.529+07:00  INFO 34052 --- [auth-service] [           main] com.mss.auth.AuthServiceApplication      : Starting AuthServiceApplication using Java 21.0.3 with PID 34052 (C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\auth-service\target\classes started by Chinh in C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\auth-service)
+2026-03-24T22:47:49.531+07:00  INFO 34052 --- [auth-service] [           main] com.mss.auth.AuthServiceApplication      : No active profile set, falling back to 1 default profile: "default"
+2026-03-24T22:47:50.074+07:00  INFO 34052 --- [auth-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-24T22:47:50.114+07:00  INFO 34052 --- [auth-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 33 ms. Found 1 JPA repository interface.
+2026-03-24T22:47:50.513+07:00  INFO 34052 --- [auth-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-03-24T22:47:50.526+07:00  INFO 34052 --- [auth-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-24T22:47:50.526+07:00  INFO 34052 --- [auth-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.41]
+2026-03-24T22:47:50.570+07:00  INFO 34052 --- [auth-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-24T22:47:50.570+07:00  INFO 34052 --- [auth-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1007 ms
+2026-03-24T22:47:50.712+07:00  INFO 34052 --- [auth-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-24T22:47:50.784+07:00  INFO 34052 --- [auth-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.15.Final
+2026-03-24T22:47:50.815+07:00  INFO 34052 --- [auth-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-03-24T22:47:51.075+07:00  INFO 34052 --- [auth-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-24T22:47:51.111+07:00  INFO 34052 --- [auth-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-24T22:47:51.262+07:00  INFO 34052 --- [auth-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@775f15fd
+2026-03-24T22:47:51.263+07:00  INFO 34052 --- [auth-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-24T22:47:51.329+07:00  INFO 34052 --- [auth-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 18.0
@@ -83,11 +63,8 @@ Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-03-24T20:18:41.301+07:00  INFO 26268 --- [auth-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-03-24T20:18:41.504+07:00  INFO 26268 --- [auth-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-03-24T20:18:42.209+07:00  WARN 26268 --- [auth-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-03-24T20:18:42.749+07:00  INFO 26268 --- [auth-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
-2026-03-24T20:18:42.757+07:00  INFO 26268 --- [auth-service] [           main] com.mss.auth.AuthServiceApplication      : Started AuthServiceApplication in 10.426 seconds (process running for 10.934)
-2026-03-24T20:23:07.527+07:00  INFO 26268 --- [auth-service] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-03-24T20:23:07.528+07:00  INFO 26268 --- [auth-service] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-03-24T20:23:07.533+07:00  INFO 26268 --- [auth-service] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 4 ms
+2026-03-24T22:47:53.424+07:00  INFO 34052 --- [auth-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-24T22:47:53.874+07:00  INFO 34052 --- [auth-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-24T22:47:57.123+07:00  WARN 34052 --- [auth-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-03-24T22:47:59.284+07:00  INFO 34052 --- [auth-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2026-03-24T22:47:59.324+07:00  INFO 34052 --- [auth-service] [           main] com.mss.auth.AuthServiceApplication      : Started AuthServiceApplication in 10.1 seconds (process running for 10.346)
