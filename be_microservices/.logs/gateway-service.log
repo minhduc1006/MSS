@@ -1,0 +1,85 @@
+[INFO] Scanning for projects...
+Downloading from central: https://repo.maven.apache.org/maven2/io/github/git-commit-id/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/flywaydb/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/cyclonedx/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/maven-metadata.xml
+Progress (1): 255 BProgress (2): 255 B | 234 B                           Downloaded from central: https://repo.maven.apache.org/maven2/org/flywaydb/maven-metadata.xml (234 B at 299 B/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jooq/maven-metadata.xml
+Progress (2): 255 B | 243 B                           Downloaded from central: https://repo.maven.apache.org/maven2/io/github/git-commit-id/maven-metadata.xml (255 B at 319 B/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/maven-metadata.xml
+Progress (2): 243 B | 249 BProgress (3): 243 B | 249 B | 398 B                                   Downloaded from central: https://repo.maven.apache.org/maven2/org/cyclonedx/maven-metadata.xml (243 B at 297 B/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/liquibase/maven-metadata.xml
+Downloaded from central: https://repo.maven.apache.org/maven2/org/jooq/maven-metadata.xml (398 B at 9.5 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/graalvm/buildtools/maven-metadata.xml
+Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/maven-metadata.xml (249 B at 302 B/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml
+Progress (1): 375 B                   Downloaded from central: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/maven-metadata.xml (375 B at 6.7 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml
+Progress (1): 394 B                   Downloaded from central: https://repo.maven.apache.org/maven2/org/liquibase/maven-metadata.xml (394 B at 6.9 kB/s)
+Progress (1): 242 BProgress (2): 242 B | 4.6 kBProgress (2): 242 B | 9.7 kBProgress (2): 242 B | 14 kB                            Downloaded from central: https://repo.maven.apache.org/maven2/org/graalvm/buildtools/maven-metadata.xml (242 B at 3.6 kB/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml (14 kB at 227 kB/s)
+Progress (1): 3.1 kBProgress (1): 8.0 kBProgress (1): 11 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 21 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml (21 kB at 200 kB/s)
+[INFO] 
+[INFO] ----------------------< com.mss:gateway-service >-----------------------
+[INFO] Building gateway-service 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ gateway-service ---
+[INFO] Deleting C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\gateway-service\target
+[INFO] 
+[INFO] >>> spring-boot:3.5.0:run (default-cli) > test-compile @ gateway-service >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ gateway-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ gateway-service ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ gateway-service ---
+[INFO] skip non existing resourceDirectory C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\gateway-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ gateway-service ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] <<< spring-boot:3.5.0:run (default-cli) < test-compile @ gateway-service <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.0:run (default-cli) @ gateway-service ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.0)
+
+2026-03-24T20:18:34.243+07:00  INFO 3112 --- [gateway-service] [           main] c.mss.gateway.GatewayServiceApplication  : Starting GatewayServiceApplication using Java 21.0.3 with PID 3112 (C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\gateway-service\target\classes started by Chinh in C:\Users\Chinh\Documents\GitHub\MSS\be_microservices\gateway-service)
+2026-03-24T20:18:34.246+07:00  INFO 3112 --- [gateway-service] [           main] c.mss.gateway.GatewayServiceApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-03-24T20:18:38.090+07:00  INFO 3112 --- [gateway-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=180b1499-1334-395d-b7d1-5da4ff74c661
+2026-03-24T20:18:40.212+07:00  INFO 3112 --- [gateway-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-03-24T20:18:40.765+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [After]
+2026-03-24T20:18:40.765+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Before]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Between]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Cookie]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Header]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Host]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Method]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Path]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Query]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [ReadBody]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [RemoteAddr]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Weight]
+2026-03-24T20:18:40.766+07:00  INFO 3112 --- [gateway-service] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2026-03-24T20:18:42.116+07:00  INFO 3112 --- [gateway-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-03-24T20:18:42.217+07:00  INFO 3112 --- [gateway-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-03-24T20:18:42.777+07:00  INFO 3112 --- [gateway-service] [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port 8080 (http)
+2026-03-24T20:18:43.797+07:00  INFO 3112 --- [gateway-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-03-24T20:18:44.813+07:00  INFO 3112 --- [gateway-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-03-24T20:18:44.861+07:00  INFO 3112 --- [gateway-service] [           main] c.mss.gateway.GatewayServiceApplication  : Started GatewayServiceApplication in 12.657 seconds (process running for 13.746)

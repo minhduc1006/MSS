@@ -3,7 +3,8 @@ $services = @(
     @{ Name = "billing-service";    Color = "Green" },
     @{ Name = "facility-service";   Color = "Yellow" },
     @{ Name = "security-service";  Color = "Magenta" },
-    @{ Name = "operations-service"; Color = "Red" }
+    @{ Name = "operations-service"; Color = "DarkRed" },
+    @{ Name = "gateway-service"; Color = "Blue" }
 )
 
 $logDir = Join-Path $PSScriptRoot ".logs"
