@@ -137,6 +137,9 @@ public class BillingDomainService {
     public BillingDtos.BillItem deactivateInvoice(Long invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice not found"));
+        if (!"Pending".equalsIgnoreCase(invoice.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only Pending invoices can be deleted");
+        }
         invoice.setStatus("Deactivated");
         return toBill(invoiceRepository.save(invoice));
     }
